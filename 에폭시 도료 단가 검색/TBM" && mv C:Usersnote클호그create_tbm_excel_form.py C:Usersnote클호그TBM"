@@ -1,0 +1,524 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, scrolledtext, filedialog, simpledialog
+from datetime import datetime
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.drawing.image import Image as XLImage
+from pathlib import Path
+from PIL import Image
+import os
+
+# 안전 템플릿
+SAFETY_TEMPLATES = {
+    "높이작업": "✓ 안전대 착용\n✓ 낙하물 주의\n✓ 발판 안전 확인\n✓ 추락 위험 대비",
+    "전기작업": "✓ 절연 도구 사용\n✓ 누전차단기 확인\n✓ 접지 확인\n✓ 감전 주의",
+    "폐쇄공간": "✓ 환기 실시\n✓ 산소 농도 측정\n✓ 구조 계획 수립\n✓ 중독 위험 주의",
+    "화학물질": "✓ 보호장비 착용\n✓ 통풍 환기\n✓ 보안경 필수\n✓ 중독 예방",
+    "중장비": "✓ 신호원 배치\n✓ 기계 상태 확인\n✓ 접근 금지 구역 설정\n✓ 협력 안전",
+    "방수": "✓ 안전대 착용\n✓ 낙하물 방지\n✓ 미끄럼 방지\n✓ 화학물질 안전",
+    "일반": "✓ 안전수칙 숙지\n✓ 개인보호구 착용\n✓ 위험요소 제거\n✓ 응급상황 대응",
+}
+
+class TBMRecorder:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("안전 TBM 참석 기록")
+        self.root.geometry("700x150")
+        self.excel_file = Path("TBM_기록.xlsx")
+
+        # 입력 데이터
+        self.date = datetime.now().strftime("%Y-%m-%d")
+        self.time = datetime.now().strftime("%H:%M")
+        self.facilitator = ""
+        self.attendees = []
+        self.topic = ""
+        self.work_content = ""
+        self.work_location = ""
+        self.risk_factors = []
+        self.risk_measures = []
+        self.priority_risk = ""
+        self.priority_measure = ""
+        self.safety_measures = []
+        self.remarks = ""
+        self.image_files = []
+
+        self._init_excel()
+        self._create_main_ui()
+
+    def _init_excel(self):
+        """엑셀 파일 초기화"""
+        if not self.excel_file.exists():
+            wb = openpyxl.Workbook()
+            wb.remove(wb.active)  # 빈 시트 제거
+            wb.save(self.excel_file)
+
+    def _create_main_ui(self):
+        """메인 UI - 시작 버튼"""
+        main_frame = ttk.Frame(self.root, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(main_frame, text="안전 TBM 회의록", font=("Arial", 16, "bold")).pack(pady=10)
+        ttk.Label(main_frame, text=f"오늘 날짜: {self.date}", font=("Arial", 11)).pack(pady=5)
+
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=20)
+
+        ttk.Button(button_frame, text="▶ TBM 기록 시작", command=self._start_process, width=20).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="📁 기록 보기", command=self._open_excel, width=20).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="종료", command=self.root.quit, width=20).pack(side=tk.LEFT, padx=5)
+
+    def _start_process(self):
+        """순차적 입력 시작"""
+        # 1. 진행자 입력
+        facilitator = simpledialog.askstring("TBM 기록", "진행자 이름을 입력하세요:")
+        if not facilitator:
+            return
+        self.facilitator = facilitator
+
+        # 2. 참석자 입력
+        attendee_input = simpledialog.askstring("TBM 기록", "참석자를 입력하세요 (쉼표로 구분)\n예: 김철수, 이영희, 박민준")
+        if not attendee_input:
+            return
+        self.attendees = [a.strip() for a in attendee_input.split(',') if a.strip()]
+
+        # 3. 현장명
+        current_site = simpledialog.askstring("TBM 기록", "현장명을 입력하세요:")
+        if not current_site:
+            return
+        self.current_site = current_site
+
+        # 4. 작업명
+        work_name = simpledialog.askstring("TBM 기록", "작업명을 입력하세요:")
+        if not work_name:
+            return
+        self.work_name = work_name
+
+        # 5. 작업내용
+        work_content_window = tk.Toplevel(self.root)
+        work_content_window.title("작업내용 입력")
+        work_content_window.geometry("500x300")
+
+        ttk.Label(work_content_window, text="작업내용을 상세히 입력하세요:").pack(padx=10, pady=10)
+        work_text = scrolledtext.ScrolledText(work_content_window, height=10, width=60)
+        work_text.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+        def save_work():
+            self.work_content = work_text.get("1.0", tk.END).strip()
+            work_content_window.destroy()
+            self._input_risk_factors()
+
+        ttk.Button(work_content_window, text="다음 →", command=save_work).pack(pady=10)
+        work_content_window.transient(self.root)
+        work_content_window.grab_set()
+
+    def _input_risk_factors(self):
+        """위험요인 입력"""
+        risk_window = tk.Toplevel(self.root)
+        risk_window.title("잠재위험요인 입력")
+        risk_window.geometry("600x400")
+
+        ttk.Label(risk_window, text="잠재위험요인과 대책을 입력하세요 (최대 3개)\n\n예시:").pack(padx=10, pady=5)
+        ttk.Label(risk_window, text="위험요인: 상부 작업자 하부 추락 위험\n대책: 안전대 착용 및 안전로프 사전 설치",
+                 foreground="gray").pack(padx=10)
+
+        ttk.Label(risk_window, text="위험요인 #1").pack(padx=10, pady=(10, 0), anchor="w")
+        risk1_text = tk.Text(risk_window, height=2, width=70)
+        risk1_text.pack(padx=10, pady=2)
+
+        ttk.Label(risk_window, text="대책 #1").pack(padx=10, pady=(5, 0), anchor="w")
+        measure1_text = tk.Text(risk_window, height=2, width=70)
+        measure1_text.pack(padx=10, pady=2)
+
+        ttk.Label(risk_window, text="위험요인 #2").pack(padx=10, pady=(5, 0), anchor="w")
+        risk2_text = tk.Text(risk_window, height=2, width=70)
+        risk2_text.pack(padx=10, pady=2)
+
+        ttk.Label(risk_window, text="대책 #2").pack(padx=10, pady=(5, 0), anchor="w")
+        measure2_text = tk.Text(risk_window, height=2, width=70)
+        measure2_text.pack(padx=10, pady=2)
+
+        def save_risks():
+            r1 = risk1_text.get("1.0", tk.END).strip()
+            m1 = measure1_text.get("1.0", tk.END).strip()
+            r2 = risk2_text.get("1.0", tk.END).strip()
+            m2 = measure2_text.get("1.0", tk.END).strip()
+
+            self.risk_factors = [r for r in [r1, r2] if r]
+            self.risk_measures = [m for m in [m1, m2] if m]
+
+            risk_window.destroy()
+            self._input_priority_risk()
+
+        ttk.Button(risk_window, text="다음 →", command=save_risks).pack(pady=10)
+        risk_window.transient(self.root)
+        risk_window.grab_set()
+
+    def _input_priority_risk(self):
+        """중점위험요인 입력"""
+        priority_window = tk.Toplevel(self.root)
+        priority_window.title("중점위험요인 입력")
+        priority_window.geometry("600x350")
+
+        ttk.Label(priority_window, text="중점위험요인을 입력하세요:").pack(padx=10, pady=10)
+
+        ttk.Label(priority_window, text="중점위험요인 선정").pack(padx=10, pady=(5, 0), anchor="w")
+        priority_risk_text = scrolledtext.ScrolledText(priority_window, height=4, width=70)
+        priority_risk_text.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+        ttk.Label(priority_window, text="중점위험요인 대책").pack(padx=10, pady=(5, 0), anchor="w")
+        priority_measure_text = scrolledtext.ScrolledText(priority_window, height=4, width=70)
+        priority_measure_text.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
+
+        def save_priority():
+            self.priority_risk = priority_risk_text.get("1.0", tk.END).strip()
+            self.priority_measure = priority_measure_text.get("1.0", tk.END).strip()
+            priority_window.destroy()
+            self._generate_safety_and_photos()
+
+        ttk.Button(priority_window, text="다음 →", command=save_priority).pack(pady=10)
+        priority_window.transient(self.root)
+        priority_window.grab_set()
+
+    def _generate_safety_and_photos(self):
+        """안전사항 자동 생성 및 사진 선택"""
+        # 작업명에 맞는 안전사항 생성
+        work_lower = self.work_name.lower()
+        self.remarks = SAFETY_TEMPLATES.get("일반")
+
+        for key in SAFETY_TEMPLATES.keys():
+            if key.lower() in work_lower or work_lower in key.lower():
+                self.remarks = SAFETY_TEMPLATES[key]
+                break
+
+        # 사진 폴더 선택
+        folder = filedialog.askdirectory(title="TBM 사진 폴더를 선택하세요")
+        if folder:
+            self._load_images(folder)
+
+        self._show_summary()
+
+    def _load_images(self, folder_path):
+        """폴더에서 이미지 로드"""
+        self.image_files = []
+        image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff'}
+
+        for file in sorted(Path(folder_path).iterdir()):
+            if file.suffix.lower() in image_extensions:
+                self.image_files.append(file)
+
+    def _show_summary(self):
+        """최종 확인 화면"""
+        summary_window = tk.Toplevel(self.root)
+        summary_window.title("TBM 기록 확인")
+        summary_window.geometry("700x600")
+
+        canvas = tk.Canvas(summary_window, bg="white")
+        scrollbar = ttk.Scrollbar(summary_window, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        summary_text = f"""
+날짜: {self.date}
+시간: {self.time}
+
+현장명: {self.current_site}
+작업명: {self.work_name}
+
+작업내용:
+{self.work_content}
+
+위험요인 및 대책:
+"""
+        for i, (risk, measure) in enumerate(zip(self.risk_factors, self.risk_measures), 1):
+            summary_text += f"\n{i}. 위험요인: {risk}\n   대책: {measure}"
+
+        summary_text += f"""
+
+중점위험요인:
+{self.priority_risk}
+
+중점위험요인 대책:
+{self.priority_measure}
+
+진행자: {self.facilitator}
+참석자: {', '.join(self.attendees)} ({len(self.attendees)}명)
+
+안전조치 사항:
+{self.remarks}
+
+선택된 사진: {len(self.image_files)}개
+        """
+
+        ttk.Label(scrollable_frame, text=summary_text, justify=tk.LEFT,
+                 font=("Arial", 9)).pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        button_frame = ttk.Frame(summary_window)
+        button_frame.pack(pady=10)
+
+        ttk.Button(button_frame, text="✓ 저장", command=lambda: self._save_record(summary_window), width=15).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="✕ 취소", command=summary_window.destroy, width=15).pack(side=tk.LEFT, padx=5)
+
+        summary_window.transient(self.root)
+        summary_window.grab_set()
+
+    def _save_record(self, summary_window):
+        """엑셀에 기록 저장 (새 시트 생성)"""
+        try:
+            wb = openpyxl.load_workbook(self.excel_file)
+
+            # 새 시트 생성 (날짜_시간 형식)
+            sheet_name = datetime.now().strftime("%m%d_%H%M")
+            if sheet_name in wb.sheetnames:
+                sheet_name = sheet_name + "_2"
+            ws = wb.create_sheet(sheet_name)
+
+            # 스타일 정의
+            header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            header_font = Font(bold=True, color="FFFFFF", size=11)
+            section_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
+            section_font = Font(bold=True, size=10)
+            border_thin = Border(left=Side(style='thin'), right=Side(style='thin'),
+                               top=Side(style='thin'), bottom=Side(style='thin'))
+
+            # 열 너비
+            ws.column_dimensions['A'].width = 15
+            ws.column_dimensions['B'].width = 50
+
+            row = 1
+
+            # 제목
+            ws.merge_cells(f'A{row}:B{row}')
+            title = ws[f'A{row}']
+            title.value = "□ TBM 회의록"
+            title.font = Font(bold=True, size=12)
+            title.alignment = Alignment(horizontal="center", vertical="center")
+            ws.row_dimensions[row].height = 25
+            row += 1
+
+            # 기본 정보
+            ws[f'A{row}'].value = "TBM 일시"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = f"{self.date} {self.time}"
+            ws[f'B{row}'].border = border_thin
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "현장명"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = self.current_site
+            ws[f'B{row}'].border = border_thin
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "작업명"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = self.work_name
+            ws[f'B{row}'].border = border_thin
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "작업내용"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'A{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws[f'B{row}'].value = self.work_content
+            ws[f'B{row}'].border = border_thin
+            ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws.row_dimensions[row].height = 50
+            row += 1
+
+            row += 1
+
+            # 위험요인 및 대책
+            ws.merge_cells(f'A{row}:B{row}')
+            header = ws[f'A{row}']
+            header.value = "■ 잠재위험요인 및 대책"
+            header.fill = header_fill
+            header.font = header_font
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            for i, (risk, measure) in enumerate(zip(self.risk_factors, self.risk_measures), 1):
+                ws[f'A{row}'].value = f"위험요인 {i}"
+                ws[f'A{row}'].fill = section_fill
+                ws[f'A{row}'].font = section_font
+                ws[f'A{row}'].border = border_thin
+                ws[f'B{row}'].value = risk
+                ws[f'B{row}'].border = border_thin
+                ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+                ws.row_dimensions[row].height = 35
+                row += 1
+
+                ws[f'A{row}'].value = f"대책 {i}"
+                ws[f'A{row}'].fill = section_fill
+                ws[f'A{row}'].font = section_font
+                ws[f'A{row}'].border = border_thin
+                ws[f'B{row}'].value = measure
+                ws[f'B{row}'].border = border_thin
+                ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+                ws.row_dimensions[row].height = 35
+                row += 1
+
+            row += 1
+
+            # 중점위험요인
+            ws.merge_cells(f'A{row}:B{row}')
+            header = ws[f'A{row}']
+            header.value = "■ 중점위험요인"
+            header.fill = header_fill
+            header.font = header_font
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "선정"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = self.priority_risk
+            ws[f'B{row}'].border = border_thin
+            ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws.row_dimensions[row].height = 35
+            row += 1
+
+            ws[f'A{row}'].value = "대책"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = self.priority_measure
+            ws[f'B{row}'].border = border_thin
+            ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws.row_dimensions[row].height = 35
+            row += 2
+
+            # TBM 리더 확인
+            ws.merge_cells(f'A{row}:B{row}')
+            header = ws[f'A{row}']
+            header.value = "■ TBM 리더 확인"
+            header.fill = header_fill
+            header.font = header_font
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "성명"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'B{row}'].value = self.facilitator
+            ws[f'B{row}'].border = border_thin
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            ws[f'A{row}'].value = "안전조치"
+            ws[f'A{row}'].fill = section_fill
+            ws[f'A{row}'].font = section_font
+            ws[f'A{row}'].border = border_thin
+            ws[f'A{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws[f'B{row}'].value = self.remarks
+            ws[f'B{row}'].border = border_thin
+            ws[f'B{row}'].alignment = Alignment(vertical="top", wrap_text=True)
+            ws.row_dimensions[row].height = 50
+            row += 2
+
+            # 참석자
+            ws.merge_cells(f'A{row}:B{row}')
+            header = ws[f'A{row}']
+            header.value = "■ 참석자"
+            header.fill = header_fill
+            header.font = header_font
+            ws.row_dimensions[row].height = 20
+            row += 1
+
+            for attendee in self.attendees:
+                ws[f'A{row}'].value = attendee
+                ws[f'A{row}'].border = border_thin
+                ws[f'B{row}'].value = "(서명)"
+                ws[f'B{row}'].border = border_thin
+                ws.row_dimensions[row].height = 25
+                row += 1
+
+            row += 2
+
+            # 사진 삽입
+            if self.image_files:
+                ws.merge_cells(f'A{row}:B{row}')
+                header = ws[f'A{row}']
+                header.value = "■ 작업 사진"
+                header.fill = header_fill
+                header.font = header_font
+                ws.row_dimensions[row].height = 20
+                row += 1
+
+                for idx, img_path in enumerate(self.image_files[:6]):
+                    try:
+                        temp_img_path = self._resize_image(img_path)
+                        img = XLImage(temp_img_path)
+                        img.width = 150
+                        img.height = 150
+                        ws.add_image(img, f'A{row}')
+                        ws.row_dimensions[row].height = 160
+                        row += 1
+                    except Exception as e:
+                        print(f"Image error: {str(e)}")
+
+            wb.save(self.excel_file)
+            messagebox.showinfo("성공", "TBM 기록이 저장되었습니다!")
+            summary_window.destroy()
+            self._reset()
+
+        except Exception as e:
+            messagebox.showerror("오류", f"저장 중 오류: {str(e)}")
+
+    def _resize_image(self, img_path, max_size=(400, 400)):
+        """이미지 리사이징"""
+        try:
+            img = Image.open(img_path)
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            temp_path = Path(self.excel_file.parent) / f"temp_{img_path.name}"
+            img.save(temp_path, quality=85, optimize=True)
+            return str(temp_path)
+        except Exception as e:
+            print(f"Image resize error: {str(e)}")
+            return str(img_path)
+
+    def _open_excel(self):
+        """엑셀 파일 열기"""
+        try:
+            import subprocess
+            subprocess.Popen([str(self.excel_file)], shell=True)
+        except Exception as e:
+            messagebox.showerror("오류", f"파일을 열 수 없습니다: {str(e)}")
+
+    def _reset(self):
+        """상태 초기화"""
+        self.facilitator = ""
+        self.attendees = []
+        self.topic = ""
+        self.work_content = ""
+        self.risk_factors = []
+        self.risk_measures = []
+        self.priority_risk = ""
+        self.priority_measure = ""
+        self.remarks = ""
+        self.image_files = []
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = TBMRecorder(root)
+    root.mainloop()
