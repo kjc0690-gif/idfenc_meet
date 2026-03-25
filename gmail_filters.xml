@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
+  <title>Mail Filters</title>
+
+  <!-- Filter 1: 프로모션 광고 자동 삭제 (Trip.com, Alibaba, Adobe) -->
+  <entry>
+    <category term='filter'></category>
+    <title>프로모션 광고 자동 삭제</title>
+    <apps:property name='from' value='Trip.com@newsletter.trip.com OR noreply@member.alibaba.com OR mail@mail.adobe.com'/>
+    <apps:property name='label' value='TRASH'/>
+    <apps:property name='shouldArchive' value='true'/>
+    <apps:property name='shouldTrash' value='true'/>
+    <apps:property name='shouldNeverSpam' value='false'/>
+  </entry>
+
+  <!-- Filter 2: 소셜 알림 자동 삭제 (Facebook, Instagram) -->
+  <entry>
+    <category term='filter'></category>
+    <title>소셜 알림 자동 삭제</title>
+    <apps:property name='from' value='friendsuggestion@facebookmail.com OR notification@facebookmail.com OR no-reply@mail.instagram.com'/>
+    <apps:property name='label' value='TRASH'/>
+    <apps:property name='shouldArchive' value='true'/>
+    <apps:property name='shouldTrash' value='true'/>
+    <apps:property name='shouldNeverSpam' value='false'/>
+  </entry>
+
+</feed>
