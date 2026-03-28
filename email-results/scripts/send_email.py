@@ -49,9 +49,18 @@ def send_email(to, subject, body, attachments, cc=None, html=False):
             encoders.encode_base64(part)
 
             filename = filepath.name
+            # 한글 파일명 인코딩 (RFC 2231)
+            from email.utils import encode_rfc2231
+            encoded_name = encode_rfc2231(filename, 'utf-8')
             part.add_header(
                 "Content-Disposition",
-                f'attachment; filename="{filename}"',
+                "attachment",
+                filename=(('utf-8', '', filename)),
+            )
+            part.add_header(
+                "Content-Type",
+                "application/octet-stream",
+                name=(('utf-8', '', filename)),
             )
             msg.attach(part)
 
@@ -79,17 +88,17 @@ def send_email(to, subject, body, attachments, cc=None, html=False):
 def show_confirmation(to, subject, body, attachments, cc=None):
     """발송 전 확인 화면 표시"""
     print()
-    print("═══════════════════════════════")
-    print("  이메일 발송 확인")
-    print("═══════════════════════════════")
+    print("=" * 40)
+    print("  [이메일 발송 확인]")
+    print("=" * 40)
     print(f"발신: {SENDER_EMAIL}")
     print(f"수신: {to}")
     if cc:
         print(f"참조: {cc}")
     print(f"제목: {subject}")
-    print("───────── 본문 ─────────")
+    print("-" * 20 + " 본문 " + "-" * 20)
     print(body)
-    print("───────── 첨부 ─────────")
+    print("-" * 20 + " 첨부 " + "-" * 20)
     if attachments:
         for i, f in enumerate(attachments, 1):
             p = Path(f)
@@ -100,7 +109,7 @@ def show_confirmation(to, subject, body, attachments, cc=None):
                 print(f"{i}. {p.name} (파일 없음!)")
     else:
         print("(첨부파일 없음)")
-    print("═══════════════════════════════")
+    print("=" * 40)
     return True
 
 
