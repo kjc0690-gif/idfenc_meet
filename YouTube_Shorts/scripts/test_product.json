@@ -1,0 +1,21 @@
+{
+  "type": "product",
+  "filename": "golf_rangefinder_test",
+  "product_name": "보이스캐디 T9\n골프 거리측정기",
+  "category": "골프 필수템 추천",
+  "features": [
+    {
+      "title": "손목시계형 GPS",
+      "detail": "무게 단 37g! 가벼워서 스윙에 방해 ZERO"
+    },
+    {
+      "title": "전국 골프장 지원",
+      "detail": "국내 모든 골프장 코스 데이터 탑재"
+    },
+    {
+      "title": "그린 언듈레이션",
+      "detail": "그린 경사도까지 한눈에! 퍼팅 전략 UP"
+    }
+  ],
+  "recommendation": "가성비 끝판왕\n거리측정기!"
+}
