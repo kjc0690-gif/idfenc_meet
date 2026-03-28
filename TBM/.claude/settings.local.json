@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/CLAUDE.md\" ./TBM/CLAUDE.md)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/SKILL.md\" ./TBM/SKILL.md)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/CLAUDE.md\" ./CLAUDE.md)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/tbm_recorder.py\" ./TBM/tbm_recorder.py)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/batch_create.py\" ./TBM/batch_create.py)",
+      "Bash(cp \"G:/내 드라이브/클로드작업기록/TBM/projects.json\" ./TBM/projects.json)"
+    ]
+  }
+}

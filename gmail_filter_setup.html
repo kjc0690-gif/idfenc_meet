@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Gmail 필터 자동 설정</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+h1 { color: #1a73e8; }
+.card { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.btn { display: inline-block; padding: 12px 24px; margin: 8px 4px; border-radius: 8px; text-decoration: none; color: white; font-size: 15px; font-weight: bold; cursor: pointer; border: none; }
+.btn-red { background: #ea4335; }
+.btn-blue { background: #4285f4; }
+.btn-green { background: #34a853; }
+.tag { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px; }
+.tag-promo { background: #fce8e6; color: #c5221f; }
+.tag-social { background: #e8f0fe; color: #1967d2; }
+.step { background: #e8f5e9; padding: 12px 16px; border-radius: 8px; margin: 8px 0; }
+.step b { color: #1b5e20; }
+</style>
+</head>
+<body>
+<h1>Gmail 필터 자동 설정</h1>
+<p>아래 링크를 클릭하면 Gmail 필터 생성 폼이 열립니다.</p>
+
+<div class="card">
+<h2>1. 프로모션/광고 자동 삭제 필터</h2>
+<p>
+<span class="tag tag-promo">Trip.com</span>
+<span class="tag tag-promo">Alibaba</span>
+<span class="tag tag-promo">Adobe</span>
+</p>
+<a class="btn btn-red" href="https://mail.google.com/mail/u/0/#create-filter/from=Trip.com%40newsletter.trip.com+OR+noreply%40member.alibaba.com+OR+mail%40mail.adobe.com" target="_blank">
+프로모션 필터 만들기
+</a>
+<div class="step">
+<b>폼이 열리면:</b><br>
+1. "필터 만들기" 클릭<br>
+2. "삭제" 체크<br>
+3. "일치하는 대화에도 필터 적용" 체크<br>
+4. "필터 만들기" 클릭
+</div>
+</div>
+
+<div class="card">
+<h2>2. 소셜 알림 자동 삭제 필터</h2>
+<p>
+<span class="tag tag-social">Facebook 친구추천</span>
+<span class="tag tag-social">Facebook 알림</span>
+<span class="tag tag-social">Instagram</span>
+</p>
+<a class="btn btn-blue" href="https://mail.google.com/mail/u/0/#create-filter/from=friendsuggestion%40facebookmail.com+OR+notification%40facebookmail.com+OR+no-reply%40mail.instagram.com" target="_blank">
+소셜 필터 만들기
+</a>
+<div class="step">
+<b>폼이 열리면:</b><br>
+1. "필터 만들기" 클릭<br>
+2. "삭제" 체크<br>
+3. "일치하는 대화에도 필터 적용" 체크<br>
+4. "필터 만들기" 클릭
+</div>
+</div>
+
+<div class="card">
+<h2>3. (선택) 필터 XML 가져오기</h2>
+<p>위 2개 필터를 한번에 가져올 수도 있습니다.</p>
+<a class="btn btn-green" href="https://mail.google.com/mail/u/0/#settings/filters" target="_blank">
+Gmail 필터 설정 열기
+</a>
+<div class="step">
+<b>설정 페이지에서:</b><br>
+1. "필터 가져오기" 클릭<br>
+2. "파일 선택" → <code>gmail_filters.xml</code> 선택<br>
+3. "파일 열기" → "필터 만들기" 클릭
+</div>
+</div>
+
+</body>
+</html>
