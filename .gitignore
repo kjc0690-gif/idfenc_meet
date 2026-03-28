@@ -8,3 +8,7 @@ Thumbs.db
 # Temp files
 *.tmp
 *.bak
+
+# Environment variables (passwords, API keys)
+.env
+*.env

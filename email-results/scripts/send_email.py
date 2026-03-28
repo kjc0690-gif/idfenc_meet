@@ -19,7 +19,7 @@ from pathlib import Path
 SMTP_SERVER = "smtp.daum.net"
 SMTP_PORT = 465
 SMTP_USER = "001kjc"
-SMTP_PASSWORD = "kidyldzzunstbcvt"
+SMTP_PASSWORD = os.environ.get("HANMAIL_APP_PASSWORD", "")
 SENDER_EMAIL = "001kjc@hanmail.net"
 
 
@@ -76,26 +76,67 @@ def send_email(to, subject, body, attachments, cc=None, html=False):
     print(f"   제목: {subject}")
 
 
+def show_confirmation(to, subject, body, attachments, cc=None):
+    """발송 전 확인 화면 표시"""
+    print()
+    print("═══════════════════════════════")
+    print("  이메일 발송 확인")
+    print("═══════════════════════════════")
+    print(f"발신: {SENDER_EMAIL}")
+    print(f"수신: {to}")
+    if cc:
+        print(f"참조: {cc}")
+    print(f"제목: {subject}")
+    print("───────── 본문 ─────────")
+    print(body)
+    print("───────── 첨부 ─────────")
+    if attachments:
+        for i, f in enumerate(attachments, 1):
+            p = Path(f)
+            if p.exists():
+                size_kb = p.stat().st_size / 1024
+                print(f"{i}. {p.name} ({size_kb:.1f} KB)")
+            else:
+                print(f"{i}. {p.name} (파일 없음!)")
+    else:
+        print("(첨부파일 없음)")
+    print("═══════════════════════════════")
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description="한메일 이메일 발송")
     parser.add_argument("--to", required=True, help="받는 사람 이메일")
     parser.add_argument("--subject", required=True, help="메일 제목")
     parser.add_argument("--body", required=True, help="메일 본문")
-    parser.add_argument("--attach", nargs="+", required=True, help="첨부파일 경로 (필수)")
+    parser.add_argument("--attach", nargs="+", help="첨부파일 경로")
     parser.add_argument("--cc", help="참조 이메일")
     parser.add_argument("--html", action="store_true", help="HTML 본문 여부")
+    parser.add_argument("--confirm", action="store_true", help="확인 화면만 표시 (발송 안 함)")
+    parser.add_argument("--yes", action="store_true", help="확인 없이 바로 발송")
 
     args = parser.parse_args()
+    attachments = args.attach or []
 
-    if not args.attach:
-        print("[오류] 첨부파일은 필수입니다.")
-        sys.exit(1)
+    # 확인 화면 표시
+    show_confirmation(args.to, args.subject, args.body, attachments, args.cc)
+
+    if args.confirm:
+        print("\n[미리보기] 확인 화면만 표시합니다. 발송하려면 --yes 옵션을 추가하세요.")
+        return
+
+    if not args.yes:
+        print("\n발송하시겠습니까? (y/n): ", end="")
+        answer = input().strip().lower()
+        if answer not in ("y", "yes", "예"):
+            print("[취소] 발송을 취소했습니다.")
+            return
 
     send_email(
         to=args.to,
         subject=args.subject,
         body=args.body,
-        attachments=args.attach,
+        attachments=attachments,
         cc=args.cc,
         html=args.html,
     )
