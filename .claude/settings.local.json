@@ -18,7 +18,14 @@
       "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\create_shortcut.ps1\")",
       "Bash(powershell -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\create_shortcut2.ps1\")",
       "Skill(work-done)",
-      "Skill(work-done:*)"
+      "Skill(work-done:*)",
+      "mcp__scheduled-tasks__list_scheduled_tasks",
+      "Bash(pip show:*)",
+      "WebSearch",
+      "Bash(\"C:/Users/kjc06/클로드 작업기록/idfenc_meet/.env\":*)",
+      "Bash(python scripts/check_imap_mail.py hanmail)",
+      "Bash(python scripts/check_imap_mail.py naver)",
+      "Bash(python -c \":*)"
     ]
   }
 }
