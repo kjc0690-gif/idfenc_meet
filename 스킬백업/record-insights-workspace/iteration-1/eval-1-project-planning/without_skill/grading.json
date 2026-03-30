@@ -1,0 +1,46 @@
+{
+  "eval_id": 1,
+  "eval_name": "project-planning-without-skill",
+  "expectations": [
+    {
+      "text": "주요 결정사항 섹션 포함",
+      "passed": true,
+      "evidence": "## 주요 결정사항 섹션에 마이크로서비스 전환, 6주, 5명 팀 명시"
+    },
+    {
+      "text": "문제점/리스크 섹션 포함",
+      "passed": true,
+      "evidence": "테이블 형식의 문제점 섹션에서 호환성 유지, 팀 경험 부족 포함"
+    },
+    {
+      "text": "해결책 섹션 포함",
+      "passed": true,
+      "evidence": "테이블에서 각 문제점마다 대응하는 해결책 제시"
+    },
+    {
+      "text": "행동 아이템 섹션 포함",
+      "passed": true,
+      "evidence": "## 행동 아이템 섹션에 3가지 구체적 할 일 나열"
+    },
+    {
+      "text": "날짜/시간 기록",
+      "passed": true,
+      "evidence": "**날짜**: 2026-03-12, **시간**: (기록 시간)"
+    },
+    {
+      "text": "마크다운 형식",
+      "passed": true,
+      "evidence": "# 제목, ## 소제목, 테이블 형식 등 마크다운 사용"
+    },
+    {
+      "text": "학습점 섹션 포함",
+      "passed": true,
+      "evidence": "## 학습한 것들 섹션으로 인사이트 정리"
+    },
+    {
+      "text": "구조화 및 가독성",
+      "passed": true,
+      "evidence": "테이블 형식으로 명확하게 정리, 간결한 구조"
+    }
+  ]
+}

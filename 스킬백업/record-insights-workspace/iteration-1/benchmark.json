@@ -1,0 +1,51 @@
+{
+  "skill_name": "record-insights",
+  "iteration": 1,
+  "test_date": "2026-03-12",
+  "results": [
+    {
+      "eval_id": 1,
+      "eval_name": "project-planning",
+      "configurations": [
+        {
+          "name": "with_skill",
+          "total_tokens": 27502,
+          "duration_ms": 17934,
+          "duration_seconds": 17.9,
+          "assertions_passed": 8,
+          "assertions_total": 8,
+          "pass_rate": 1.0,
+          "quality_score": "excellent"
+        },
+        {
+          "name": "without_skill",
+          "total_tokens": 25555,
+          "duration_ms": 11546,
+          "duration_seconds": 11.5,
+          "assertions_passed": 8,
+          "assertions_total": 8,
+          "pass_rate": 1.0,
+          "quality_score": "excellent"
+        }
+      ],
+      "comparison": {
+        "token_delta": 1947,
+        "token_delta_percent": 7.6,
+        "time_delta_ms": 6388,
+        "time_delta_percent": 55.4,
+        "conclusion": "두 버전 모두 요구 사항을 완벽히 충족. with_skill이 더 상세하고 구조화됨 (토큰 7.6% 증가, 시간 55% 증가)"
+      }
+    }
+  ],
+  "summary": {
+    "total_evals": 1,
+    "all_passed": true,
+    "overall_quality": "✅ 스킬이 효과적으로 작동함",
+    "observations": [
+      "with_skill 버전: emoji, 상세 섹션, 심각도 표시로 더 전문적",
+      "without_skill 버전: 간결하고 효율적인 표 형식",
+      "두 버전 모두 모든 assertion 통과",
+      "with_skill이 더 많은 token을 사용하지만 가독성 및 구조화도 우수"
+    ]
+  }
+}
