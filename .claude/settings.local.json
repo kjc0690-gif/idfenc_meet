@@ -31,7 +31,12 @@
       "Bash(python \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/email-results/scripts/send_email.py\" --to \"admin@idfkorea.co.kr\" --subject \"[TBM] 농협은행 울산영업부 \\(3/28~3/30 작업없음\\)\" --body \"농협은행 울산영업부 TBM 보고합니다.:*)",
       "Bash(powershell.exe -Command \"[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null; [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom, ContentType = WindowsRuntime] | Out-Null; $xml = [Windows.Data.Xml.Dom.XmlDocument]::new\\(\\); $xml.LoadXml\\(''<toast><visual><binding template=\"\"ToastText02\"\"><text id=\"\"1\"\">Claude 동기화 알림</text><text id=\"\"2\"\">다른 PC와 동기화할까요? /sync-backup 으로 실행하세요</text></binding></visual></toast>''\\); [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier\\(''Claude Code''\\).Show\\([Windows.UI.Notifications.ToastNotification]::new\\($xml\\)\\)\")",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/scripts/create_sync_shortcut.ps1\")",
-      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \":*)"
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \":*)",
+      "Read(//c/Users/note/Desktop/클로드_작업기록/**)",
+      "Bash(python /tmp/create_superflat_marketing.py)",
+      "Bash(python create_superflat_marketing.py)",
+      "Bash(python create_sales_db.py)",
+      "Bash(python create_sales_log.py)"
     ]
   }
 }
