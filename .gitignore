@@ -1,0 +1,17 @@
+# 큰 파일 제외
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.mov
+*.avi
+*.xlsx
+*.xls
+*.pptx
+
+# 임시 파일
+~$*
+*.tmp
+__pycache__/
+*.pyc
