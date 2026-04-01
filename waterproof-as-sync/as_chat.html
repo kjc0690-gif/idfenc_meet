@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>방수명장 AS 대응 시스템</title>
+<style>
+/* ====== 리셋 & 기본 ====== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0f2f5;height:100vh;display:flex;flex-direction:column}
+
+/* ====== 헤더 ====== */
+.header{background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header h1{font-size:18px;font-weight:700}
+.header-info{display:flex;gap:12px;align-items:center;font-size:13px}
+.header-info .case-id{background:rgba(255,255,255,.2);padding:4px 10px;border-radius:12px}
+.header-info .status{font-size:11px;opacity:.8}
+.save-indicator{font-size:11px;color:#86efac;opacity:0;transition:opacity .3s}
+.save-indicator.show{opacity:1}
+
+/* ====== 메인 영역 ====== */
+.main{flex:1;display:flex;overflow:hidden}
+
+/* ====== 사이드바 ====== */
+.sidebar{width:240px;background:#fff;border-right:1px solid #e5e7eb;padding:16px;overflow-y:auto;flex-shrink:0}
+.sidebar h3{font-size:14px;color:#6b7280;margin-bottom:12px;font-weight:600}
+.step-list{list-style:none}
+.step-item{padding:10px 12px;margin-bottom:4px;border-radius:8px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s}
+.step-item:hover{background:#f3f4f6}
+.step-item.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+.step-item.done{color:#059669}
+.step-item .icon{font-size:16px;width:22px;text-align:center}
+.step-item .check{color:#10b981;font-weight:bold}
+
+.activity-list{margin-top:16px}
+.activity-list h4{font-size:12px;color:#9ca3af;margin-bottom:8px;text-transform:uppercase}
+.activity-item{padding:6px 10px;font-size:12px;color:#6b7280;border-left:3px solid #e5e7eb;margin-bottom:4px;cursor:pointer}
+.activity-item:hover{background:#f9fafb;border-left-color:#3b82f6}
+.activity-item .tag{font-size:10px;padding:1px 6px;border-radius:4px;margin-right:4px}
+.tag-visit{background:#dbeafe;color:#2563eb}
+.tag-meeting{background:#fef3c7;color:#d97706}
+.tag-construction{background:#d1fae5;color:#059669}
+
+/* ====== 채팅 영역 ====== */
+.chat-area{flex:1;display:flex;flex-direction:column;background:#f0f2f5}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+
+/* 메시지 버블 */
+.msg{max-width:80%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-break:break-word;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-ai{background:#fff;color:#1f2937;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.msg-user{background:#3b82f6;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg-system{background:#fef3c7;color:#92400e;align-self:center;font-size:12px;padding:8px 16px;border-radius:20px;max-width:90%}
+
+.msg-ai .label{font-size:11px;color:#9ca3af;margin-bottom:4px;font-weight:600}
+.msg-ai strong{color:#1d4ed8}
+.msg-ai .highlight{background:#eff6ff;padding:8px 12px;border-radius:8px;margin:8px 0;border-left:3px solid #3b82f6}
+
+/* 선택 버튼들 */
+.choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.choice-btn{padding:8px 16px;border:2px solid #3b82f6;background:#fff;color:#3b82f6;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.choice-btn:hover{background:#3b82f6;color:#fff}
+.choice-btn.selected{background:#3b82f6;color:#fff}
+
+/* 사진 미리보기 */
+.photo-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.photo-thumb{width:80px;height:80px;border-radius:8px;object-fit:cover;cursor:pointer;border:2px solid #e5e7eb;transition:border-color .2s}
+.photo-thumb:hover{border-color:#3b82f6}
+
+/* 진행바 */
+.progress-bar{background:#e5e7eb;border-radius:10px;height:20px;margin:8px 0;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,#10b981,#34d399);height:100%;border-radius:10px;transition:width .5s;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700}
+
+/* ====== 입력 영역 ====== */
+.input-area{padding:12px 20px;background:#fff;border-top:1px solid #e5e7eb;display:flex;gap:8px;align-items:flex-end}
+.input-area textarea{flex:1;border:2px solid #e5e7eb;border-radius:16px;padding:10px 16px;font-size:14px;font-family:inherit;resize:none;min-height:44px;max-height:120px;outline:none;transition:border-color .2s}
+.input-area textarea:focus{border-color:#3b82f6}
+.input-area textarea::placeholder{color:#9ca3af}
+
+.btn-group{display:flex;gap:6px}
+.btn{padding:10px 16px;border:none;border-radius:12px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:4px}
+.btn-send{background:#3b82f6;color:#fff}
+.btn-send:hover{background:#2563eb}
+.btn-send:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-photo{background:#f3f4f6;color:#6b7280;font-size:18px;padding:10px 14px}
+.btn-photo:hover{background:#e5e7eb}
+.btn-skip{background:#f3f4f6;color:#6b7280;font-size:13px}
+.btn-skip:hover{background:#e5e7eb}
+
+.hidden-input{display:none}
+
+/* ====== 모달 ====== */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;padding:24px}
+.modal h2{margin-bottom:16px}
+.modal img{max-width:100%;border-radius:8px}
+.modal-close{position:absolute;top:12px;right:16px;font-size:24px;cursor:pointer;color:#6b7280}
+
+/* ====== 반응형 ====== */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .msg{max-width:90%}
+  .header h1{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <h1>🔧 방수명장 AS 대응 시스템</h1>
+  <div class="header-info">
+    <span class="case-id" id="headerCaseId">새 AS</span>
+    <span class="save-indicator" id="saveIndicator">💾 저장됨</span>
+  </div>
+</div>
+
+<!-- 메인 -->
+<div class="main">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <h3>📋 진행 단계</h3>
+    <ul class="step-list" id="stepList">
+      <li class="step-item active" data-step="1"><span class="icon">📄</span>공문 접수</li>
+      <li class="step-item" data-step="2"><span class="icon">📝</span>상세 정보</li>
+      <li class="step-item" data-step="3"><span class="icon">⚡</span>긴급도 판단</li>
+      <li class="step-item" data-step="4"><span class="icon">📅</span>활동 기록</li>
+      <li class="step-item" data-step="5"><span class="icon">📊</span>완료 & 저장</li>
+    </ul>
+    <div class="activity-list" id="activityList">
+      <h4>활동 기록</h4>
+    </div>
+  </div>
+
+  <!-- 채팅 -->
+  <div class="chat-area">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="input-area">
+      <textarea id="userInput" placeholder="메시지를 입력하세요..." rows="1"></textarea>
+      <input type="file" id="photoInput" class="hidden-input" accept="image/*" multiple>
+      <div class="btn-group">
+        <button class="btn btn-photo" id="btnPhoto" title="사진 첨부">📷</button>
+        <button class="btn btn-send" id="btnSend">전송</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 사진 모달 -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal" style="position:relative">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <img id="modalImage" src="" alt="사진">
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// 방수명장 AS 대응 시스템 - 대화형 프로세스
+// ═══════════════════════════════════════════════════════
+
+// ──── 데이터 모델 ────
+let currentCase = null;
+let currentStep = 0;       // 현재 질문 인덱스
+let currentPhase = 1;      // 현재 단계 (1~5)
+let waitingForPhoto = false;
+let waitingForMultiInput = null; // 참석자 등 다중 입력 상태
+let tempPhotos = [];        // 임시 사진 저장
+
+const STORAGE_KEY = 'waterproof_as_chat';
+
+// ──── 초기화 ────
+function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      currentCase = JSON.parse(saved);
+      addSystemMsg('이전 작업을 불러왔습니다. 이어서 진행합니다.');
+      restoreProgress();
+      return;
+    } catch(e) { /* 무시 */ }
+  }
+  startNewCase();
+}
+
+function startNewCase() {
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
+  const seq = String(Math.floor(Math.random()*9000)+1000);
+  const caseId = `AS-${dateStr}-${seq}`;
+
+  currentCase = {
+    caseId,
+    version: '3.0',
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+    officialDocPhotos: [],
+    aiAnalysis: '',
+    siteName: '',
+    siteOverview: '',
+    basicInfo: {
+      buildingType:'', constructionArea:'', constructionSize:'',
+      completionYear:'', mainSymptoms:'', existingMethod:'',
+      firstOccurrence:'', clientName:'', clientPhone:'', clientAddress:''
+    },
+    urgency: { checklist:[], score:0, level:'' },
+    activities: []
+  };
+
+  document.getElementById('headerCaseId').textContent = caseId;
+  currentStep = 0;
+  currentPhase = 1;
+  saveData();
+  askNext();
+}
+
+// ──── 질문 흐름 정의 ────
+const QUESTIONS = [
+  // === Step 1: 공문 접수 ===
+  { phase:1, id:'doc_photo', type:'photo',
+    ask:'안녕하세요, 방수명장 AS 시스템입니다. 🔧\n\nAS 공문 사진을 업로드해주세요.\n(여러 장 업로드 가능, 없으면 "패스")',
+    field:'officialDocPhotos', optional:true },
+  { phase:1, id:'site_name', type:'text',
+    ask:'현장명을 알려주세요.\n\n예) OO아파트 101동 옥상 방수공사',
+    field:'siteName', required:true },
+  { phase:1, id:'site_overview', type:'text',
+    ask:'현장 개요를 상세히 알려주세요.\n\n포함할 내용:\n- 건물 준공연도\n- 기존 방수 이력\n- 균열 발생 원인 (추정)\n- 기타 특이사항',
+    field:'siteOverview', required:true },
+
+  // === Step 2: 상세 정보 ===
+  { phase:2, id:'building_type', type:'choice',
+    ask:'건물 유형을 선택해주세요.',
+    choices:['아파트','단독주택','상가건물','공장','오피스텔','지하주차장','기타'],
+    field:'basicInfo.buildingType' },
+  { phase:2, id:'area', type:'choice',
+    ask:'시공 부위를 선택해주세요.',
+    choices:['옥상','외벽','지하실','화장실','베란다','주차장','기타'],
+    field:'basicInfo.constructionArea' },
+  { phase:2, id:'size', type:'text',
+    ask:'시공 면적을 알려주세요. (단위: ㎡)\n모르시면 "패스" 가능합니다.',
+    field:'basicInfo.constructionSize', optional:true },
+  { phase:2, id:'year', type:'text',
+    ask:'건물 준공 연도를 알려주세요.\n모르시면 "패스" 가능합니다.',
+    field:'basicInfo.completionYear', optional:true },
+  { phase:2, id:'symptoms', type:'text',
+    ask:'주요 누수 증상을 상세히 알려주세요.\n\n포함할 내용:\n- 누수 위치 (구체적으로)\n- 발생 시점 (언제부터)\n- 증상 상세 (어떻게)',
+    field:'basicInfo.mainSymptoms', required:true },
+  { phase:2, id:'method', type:'text',
+    ask:'기존 방수 공법을 알고 계시면 알려주세요.\n모르시면 "패스" 가능합니다.',
+    field:'basicInfo.existingMethod', optional:true },
+  { phase:2, id:'first_date', type:'text',
+    ask:'누수 최초 발생일을 알려주세요.\n(예: 2026-03-15)\n모르시면 "패스" 가능합니다.',
+    field:'basicInfo.firstOccurrence', optional:true },
+  { phase:2, id:'client_name', type:'text',
+    ask:'고객명을 알려주세요.',
+    field:'basicInfo.clientName', required:true },
+  { phase:2, id:'client_phone', type:'text',
+    ask:'고객 연락처를 알려주세요.\n(예: 010-1234-5678)',
+    field:'basicInfo.clientPhone', required:true },
+  { phase:2, id:'client_addr', type:'text',
+    ask:'고객 주소를 알려주세요.\n모르시면 "패스" 가능합니다.',
+    field:'basicInfo.clientAddress', optional:true },
+
+  // === Step 3: 긴급도 ===
+  { phase:3, id:'urg1', type:'yesno',
+    ask:'긴급도 판단을 위해 5가지 질문을 드리겠습니다.\n\n1️⃣ 누수가 실내로 들어와 생활에 지장이 있나요?',
+    score:3 },
+  { phase:3, id:'urg2', type:'yesno',
+    ask:'2️⃣ 구조적 균열이 발견되었나요?',
+    score:2 },
+  { phase:3, id:'urg3', type:'yesno',
+    ask:'3️⃣ 누수 발생 후 24시간 이내인가요?',
+    score:2 },
+  { phase:3, id:'urg4', type:'yesno',
+    ask:'4️⃣ 외벽 또는 옥상에서 육안으로 균열이 확인되나요?',
+    score:1 },
+  { phase:3, id:'urg5', type:'yesno',
+    ask:'5️⃣ 우천 시에만 발생하나요?',
+    score:1 },
+
+  // === Step 4: 활동 허브 ===
+  { phase:4, id:'activity_hub', type:'activity_hub',
+    ask:'활동을 추가하시겠습니까?' },
+
+  // === Step 5: 완료 ===
+  { phase:5, id:'complete', type:'complete',
+    ask:'종합 보고서를 생성합니다.' }
+];
+
+// ──── 질문 진행 ────
+function askNext() {
+  if (currentStep >= QUESTIONS.length) return;
+  const q = QUESTIONS[currentStep];
+
+  // 단계 변경 감지
+  if (q.phase !== currentPhase) {
+    currentPhase = q.phase;
+    updateSidebar();
+  }
+
+  if (q.type === 'photo') {
+    waitingForPhoto = true;
+    addAiMsg(q.ask);
+    showSkipBtn(q.optional);
+  } else if (q.type === 'choice') {
+    addAiMsgWithChoices(q.ask, q.choices);
+  } else if (q.type === 'yesno') {
+    addAiMsgWithChoices(q.ask, ['예','아니오']);
+  } else if (q.type === 'activity_hub') {
+    showActivityHub();
+  } else if (q.type === 'complete') {
+    showReport();
+  } else {
+    addAiMsg(q.ask);
+    showSkipBtn(q.optional);
+  }
+}
+
+// ──── 답변 처리 ────
+function handleAnswer(answer) {
+  if (!answer && !waitingForPhoto) return;
+  const q = QUESTIONS[currentStep];
+  if (!q) return;
+
+  // 특수 명령어 처리
+  const cmd = answer.trim().toLowerCase();
+  if (cmd === '저장' || cmd === '임시저장' || cmd === '임시 저장') {
+    saveData(); addSystemMsg('현재까지 입력된 데이터를 저장했습니다.'); return;
+  }
+  if (cmd === '진행상황' || cmd === '어디까지 했어?' || cmd === '진행 상황') {
+    showProgress(); return;
+  }
+  if (cmd === '처음부터' || cmd === '새로 시작') {
+    addAiMsg('⚠️ 현재까지 입력한 데이터가 삭제됩니다.\n계속하시겠습니까? ("확인" 입력)');
+    waitingForMultiInput = 'confirm_reset'; return;
+  }
+  if (waitingForMultiInput === 'confirm_reset') {
+    waitingForMultiInput = null;
+    if (cmd === '확인' || cmd === '예') {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('chatMessages').innerHTML = '';
+      startNewCase();
+    } else { addAiMsg('취소되었습니다. 계속 진행합니다.'); }
+    return;
+  }
+
+  // 다중 입력 상태 (참석자 추가 등)
+  if (waitingForMultiInput) {
+    handleMultiInput(answer); return;
+  }
+
+  // 패스 처리
+  if (q.optional && (cmd === '패스' || cmd === 'pass' || cmd === '스킵' || cmd === 'skip')) {
+    addUserMsg('패스');
+    addAiMsg('⏭️ 건너뛰었습니다.');
+    waitingForPhoto = false;
+    currentStep++;
+    saveData();
+    setTimeout(askNext, 400);
+    return;
+  }
+
+  // 필수 항목 체크
+  if (q.required && !answer.trim()) {
+    addAiMsg('⚠️ 필수 항목입니다. 입력해주세요.');
+    return;
+  }
+
+  addUserMsg(answer);
+
+  // 타입별 처리
+  if (q.type === 'text' || q.type === 'choice') {
+    setField(q.field, answer.trim());
+    addAiMsg(`✅ ${getFieldLabel(q.id)}: ${answer.trim()}`);
+    // 현장명이면 헤더 업데이트
+    if (q.id === 'site_name') {
+      document.getElementById('headerCaseId').textContent =
+        `${currentCase.caseId} | ${answer.trim()}`;
+    }
+  } else if (q.type === 'yesno') {
+    const yes = (cmd === '예' || cmd === 'yes' || cmd === '네' || cmd === 'y');
+    if (yes) {
+      currentCase.urgency.score += q.score;
+      currentCase.urgency.checklist.push(q.id);
+      addAiMsg(`✅ 체크 (+${q.score}점)`);
+    } else {
+      addAiMsg('⏭️ 미체크');
+    }
+    // 마지막 긴급도 질문이면 결과 표시
+    if (q.id === 'urg5') {
+      setTimeout(() => showUrgencyResult(), 400);
+    }
+  }
+
+  waitingForPhoto = false;
+  currentStep++;
+  saveData();
+  setTimeout(askNext, 500);
+}
+
+// ──── 사진 처리 ────
+function handlePhotos(files) {
+  if (!files.length) return;
+  const q = QUESTIONS[currentStep];
+  const promises = [];
+
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const p = new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
+    promises.push(p);
+  });
+
+  Promise.all(promises).then(results => {
+    // 현재 단계에 따라 저장 위치 결정
+    if (q && q.field === 'officialDocPhotos') {
+      currentCase.officialDocPhotos.push(...results);
+      tempPhotos = results;
+    } else if (waitingForPhoto && currentActivityData) {
+      currentActivityData.photos.push(...results);
+      tempPhotos = results;
+    } else {
+      tempPhotos = results;
+    }
+
+    addUserMsg(`📸 사진 ${results.length}장 첨부`);
+    addPhotoPreview(results);
+
+    // AI 분석 모의
+    setTimeout(() => {
+      if (q && q.id === 'doc_photo') {
+        addAiMsg('📋 <strong>AI 검토 의견:</strong>\n\n' +
+          '<div class="highlight">' +
+          '• 공문 사진을 확인했습니다\n' +
+          '• 누수 관련 하자 접수로 판단됩니다\n' +
+          '• 상세 분석은 현장 방문 후 진행합니다</div>\n\n' +
+          '다음 단계로 진행하겠습니다.');
+      } else {
+        addAiMsg(`✅ 사진 ${results.length}장 첨부 완료`);
+      }
+      waitingForPhoto = false;
+      currentStep++;
+      saveData();
+      setTimeout(askNext, 400);
+    }, 600);
+  });
+}
+
+// ──── 긴급도 결과 ────
+function showUrgencyResult() {
+  const s = currentCase.urgency.score;
+  let level, emoji, color, advice;
+  if (s >= 5) {
+    level='높음 (긴급)'; emoji='🔴'; color='#ef4444';
+    advice='• 48시간 내 현장 방문 필요\n• 임시 방수 조치 권장\n• 정밀 진단 후 보수 계획 수립';
+  } else if (s >= 3) {
+    level='보통'; emoji='🟡'; color='#f59e0b';
+    advice='• 1주일 내 현장 방문 권장\n• 사전 자료 검토 후 방문\n• 기존 도면/시방서 확보';
+  } else {
+    level='낮음'; emoji='🟢'; color='#10b981';
+    advice='• 일정 조율 후 방문 예약\n• 부분 보수 가능성 검토\n• 모니터링 계획 수립';
+  }
+  currentCase.urgency.level = level;
+  saveData();
+
+  addAiMsg(`📊 <strong>긴급도 판단 결과</strong>\n\n` +
+    `<div class="highlight">` +
+    `총점: <strong>${s}점</strong>\n` +
+    `긴급도: ${emoji} <strong style="color:${color}">${level}</strong></div>\n\n` +
+    `<strong>권장 대응:</strong>\n${advice}\n\n` +
+    `다음으로 활동 기록을 진행합니다.`);
+}
+
+// ──── 활동 허브 ────
+let currentActivityData = null;
+let activitySubStep = 0;
+
+function showActivityHub() {
+  const count = currentCase.activities.length;
+  let summary = '';
+  if (count > 0) {
+    const visits = currentCase.activities.filter(a=>a.type==='visit').length;
+    const meets = currentCase.activities.filter(a=>a.type==='meeting').length;
+    const consts = currentCase.activities.filter(a=>a.type==='construction').length;
+    summary = `\n\n📊 현재 활동: 총 ${count}건` +
+      (visits?` | 현장방문 ${visits}회`:'') +
+      (meets?` | 회의 ${meets}회`:'') +
+      (consts?` | 시공 ${consts}회`:'');
+  }
+  addAiMsgWithChoices(
+    `활동을 추가하시겠습니까?${summary}`,
+    ['🔍 현장 방문','💬 회의','⚒️ 시공','✅ 완료 (다음 단계)']
+  );
+}
+
+function handleActivityChoice(choice) {
+  const c = choice.replace(/[🔍💬⚒️✅ ]/g,'').trim();
+  addUserMsg(choice);
+
+  if (c.includes('완료') || c.includes('다음')) {
+    const count = currentCase.activities.length;
+    addAiMsg(`✅ 활동 기록 완료\n총 ${count}개 활동이 등록되었습니다.`);
+    currentStep++;
+    currentPhase = 5;
+    updateSidebar();
+    saveData();
+    setTimeout(askNext, 500);
+    return;
+  }
+
+  let type;
+  if (c.includes('현장') || c.includes('방문')) type = 'visit';
+  else if (c.includes('회의')) type = 'meeting';
+  else if (c.includes('시공')) type = 'construction';
+  else { addAiMsg('유형을 다시 선택해주세요.'); showActivityHub(); return; }
+
+  currentActivityData = {
+    id: Date.now(),
+    type,
+    date:'', time:'', content:'',
+    photos: [],
+    meetingMinutes: type==='meeting' ? {attendees:[],decisions:'',pending:'',actionItems:[]} : undefined,
+    constructionLog: type==='construction' ? {weather:'',workers:'',work:'',materials:'',progress:'',notes:''} : undefined
+  };
+  activitySubStep = 0;
+  askActivityQuestion();
+}
+
+// ─── 활동별 세부 질문 ───
+const ACTIVITY_FLOWS = {
+  visit: [
+    { id:'date', ask:'방문 날짜를 알려주세요. (예: 2026-04-01 또는 "오늘")' },
+    { id:'time', ask:'방문 시간을 알려주세요. (예: 14:00)\n패스 가능합니다.', optional:true },
+    { id:'content', ask:'방문 내용을 상세히 알려주세요.' },
+    { id:'photo', ask:'현장 사진을 업로드해주세요.\n(여러 장 가능, 패스도 가능)', type:'photo', optional:true }
+  ],
+  meeting: [
+    { id:'date', ask:'회의 날짜를 알려주세요. (예: 2026-04-02)' },
+    { id:'time', ask:'회의 시간을 알려주세요. (예: 10:00)\n패스 가능합니다.', optional:true },
+    { id:'content', ask:'회의 안건 또는 내용을 알려주세요.' },
+    { id:'attendees', ask:'참석자 이름을 하나씩 알려주세요.\n완료하시면 "완료"라고 입력해주세요.', type:'multi' },
+    { id:'decisions', ask:'주요 결정사항을 알려주세요.' },
+    { id:'pending', ask:'보류 사항이 있으면 알려주세요.\n없으면 "패스" 가능합니다.', optional:true },
+    { id:'action_items', ask:'액션 아이템을 추가하시겠습니까?\n(할일/담당자/기한을 한 줄에 입력)\n\n예) 견적서 제출 / 김기술 / 2026-04-05\n\n없으면 "패스"', optional:true, type:'action' },
+    { id:'photo', ask:'회의 관련 사진이 있으면 업로드해주세요.\n(패스 가능)', type:'photo', optional:true }
+  ],
+  construction: [
+    { id:'date', ask:'시공 날짜를 알려주세요. (예: 2026-04-10)' },
+    { id:'time', ask:'시공 시간을 알려주세요. (예: 09:00)\n패스 가능합니다.', optional:true },
+    { id:'content', ask:'시공 개요를 간단히 알려주세요.\n(예: 1일차 시공)' },
+    { id:'weather', ask:'기상 상태를 선택해주세요.', type:'choice',
+      choices:['☀️ 맑음','☁️ 흐림','🌧️ 비','❄️ 눈'] },
+    { id:'workers', ask:'투입 인원을 알려주세요. (숫자만)' },
+    { id:'work', ask:'작업 내용을 상세히 알려주세요.' },
+    { id:'materials', ask:'사용한 자재를 알려주세요.\n(품명, 수량 등)' },
+    { id:'progress', ask:'현재 진척도를 퍼센트로 알려주세요. (0~100)' },
+    { id:'notes', ask:'특이사항이 있으면 알려주세요.\n(품질이슈, 작업 중단 사유 등)\n없으면 "패스"', optional:true },
+    { id:'photo', ask:'작업 사진을 업로드해주세요.\n(Before/After 사진 권장, 패스 가능)', type:'photo', optional:true }
+  ]
+};
+
+function askActivityQuestion() {
+  const flow = ACTIVITY_FLOWS[currentActivityData.type];
+  if (activitySubStep >= flow.length) {
+    finishActivity(); return;
+  }
+  const q = flow[activitySubStep];
+
+  if (q.type === 'photo') {
+    waitingForPhoto = true;
+    addAiMsg(q.ask);
+    showSkipBtn(q.optional);
+  } else if (q.type === 'choice') {
+    addAiMsgWithChoices(q.ask, q.choices);
+  } else if (q.type === 'multi') {
+    waitingForMultiInput = 'attendees';
+    addAiMsg(q.ask);
+  } else if (q.type === 'action') {
+    waitingForMultiInput = 'action_items';
+    addAiMsg(q.ask);
+  } else {
+    addAiMsg(q.ask);
+    showSkipBtn(q.optional);
+  }
+}
+
+function handleActivityAnswer(answer) {
+  const flow = ACTIVITY_FLOWS[currentActivityData.type];
+  const q = flow[activitySubStep];
+  const cmd = answer.trim().toLowerCase();
+  const d = currentActivityData;
+
+  // 패스 처리
+  if (q.optional && (cmd==='패스'||cmd==='pass'||cmd==='스킵')) {
+    addUserMsg('패스');
+    addAiMsg('⏭️ 건너뛰었습니다.');
+    waitingForPhoto = false;
+    activitySubStep++;
+    saveData();
+    setTimeout(askActivityQuestion, 400);
+    return;
+  }
+
+  addUserMsg(answer);
+
+  // 필드에 저장
+  switch(q.id) {
+    case 'date':
+      d.date = (cmd==='오늘'||cmd==='today') ? new Date().toISOString().slice(0,10) : answer.trim();
+      addAiMsg(`✅ 날짜: ${d.date}`); break;
+    case 'time':
+      d.time = answer.trim(); addAiMsg(`✅ 시간: ${d.time}`); break;
+    case 'content':
+      d.content = answer.trim(); addAiMsg('✅ 내용 입력 완료'); break;
+    case 'decisions':
+      d.meetingMinutes.decisions = answer.trim(); addAiMsg('✅ 결정사항 입력 완료'); break;
+    case 'pending':
+      d.meetingMinutes.pending = answer.trim(); addAiMsg('✅ 보류 사항 입력 완료'); break;
+    case 'weather':
+      d.constructionLog.weather = answer.trim(); addAiMsg(`✅ 기상: ${answer.trim()}`); break;
+    case 'workers':
+      d.constructionLog.workers = answer.trim(); addAiMsg(`✅ 투입 인원: ${answer.trim()}명`); break;
+    case 'work':
+      d.constructionLog.work = answer.trim(); addAiMsg('✅ 작업 내용 입력 완료'); break;
+    case 'materials':
+      d.constructionLog.materials = answer.trim(); addAiMsg('✅ 사용 자재 입력 완료'); break;
+    case 'progress':
+      const pct = parseInt(answer)||0;
+      d.constructionLog.progress = String(Math.min(100,Math.max(0,pct)));
+      addAiMsg(`✅ 진척도: ${d.constructionLog.progress}%\n` +
+        `<div class="progress-bar"><div class="progress-fill" style="width:${d.constructionLog.progress}%">${d.constructionLog.progress}%</div></div>`);
+      break;
+    case 'notes':
+      d.constructionLog.notes = answer.trim(); addAiMsg('✅ 특이사항 입력 완료'); break;
+  }
+
+  activitySubStep++;
+  saveData();
+  setTimeout(askActivityQuestion, 400);
+}
+
+// 다중 입력 (참석자, 액션아이템)
+function handleMultiInput(answer) {
+  const cmd = answer.trim().toLowerCase();
+
+  if (waitingForMultiInput === 'attendees') {
+    if (cmd === '완료' || cmd === 'done') {
+      const cnt = currentActivityData.meetingMinutes.attendees.length;
+      waitingForMultiInput = null;
+      addUserMsg('완료');
+      addAiMsg(`✅ 참석자 ${cnt}명 등록 완료`);
+      activitySubStep++;
+      saveData();
+      setTimeout(askActivityQuestion, 400);
+    } else {
+      currentActivityData.meetingMinutes.attendees.push(answer.trim());
+      addUserMsg(answer.trim());
+      addAiMsg(`✅ 참석자 추가: ${answer.trim()}\n\n추가 참석자가 있으면 입력, 완료하시면 "완료" 입력`);
+    }
+  } else if (waitingForMultiInput === 'action_items') {
+    if (cmd === '패스' || cmd === 'pass' || cmd === '완료') {
+      waitingForMultiInput = null;
+      addUserMsg(answer.trim());
+      addAiMsg('⏭️ 액션 아이템 완료');
+      activitySubStep++;
+      saveData();
+      setTimeout(askActivityQuestion, 400);
+    } else {
+      // "할일 / 담당자 / 기한" 파싱
+      const parts = answer.split('/').map(s=>s.trim());
+      const item = { task:parts[0]||answer.trim(), assignee:parts[1]||'', deadline:parts[2]||'' };
+      currentActivityData.meetingMinutes.actionItems.push(item);
+      addUserMsg(answer.trim());
+      addAiMsg(`✅ 액션 아이템 추가\n• 할일: ${item.task}\n• 담당자: ${item.assignee||'-'}\n• 기한: ${item.deadline||'-'}\n\n추가하려면 같은 형식으로 입력, 없으면 "완료"`);
+    }
+  }
+}
+
+function finishActivity() {
+  currentCase.activities.push(currentActivityData);
+  const typeNames = {visit:'현장 방문',meeting:'회의',construction:'시공'};
+  addAiMsg(`✅ <strong>${typeNames[currentActivityData.type]}</strong> 기록이 저장되었습니다.\n` +
+    `(${currentActivityData.date} ${currentActivityData.time||''})`);
+  renderActivitySidebar();
+  currentActivityData = null;
+  waitingForMultiInput = null;
+  saveData();
+  setTimeout(showActivityHub, 600);
+}
+
+// ──── 종합 보고서 ────
+function showReport() {
+  const c = currentCase;
+  const b = c.basicInfo;
+  const acts = c.activities;
+  const totalPhotos = c.officialDocPhotos.length +
+    acts.reduce((sum,a) => sum + (a.photos?a.photos.length:0), 0);
+
+  let report = `📊 <strong>AS 대응 프로세스 종합 보고서</strong>\n\n` +
+    `<div class="highlight">` +
+    `🏢 <strong>현장 정보</strong>\n` +
+    `• 현장명: ${c.siteName}\n` +
+    `• AS 번호: ${c.caseId}\n` +
+    `• 고객명: ${b.clientName}\n` +
+    `• 연락처: ${b.clientPhone}\n` +
+    `• 건물유형: ${b.buildingType} | 시공부위: ${b.constructionArea}\n` +
+    `</div>\n\n` +
+    `<div class="highlight">` +
+    `⚡ <strong>긴급도</strong>: ${c.urgency.level} (${c.urgency.score}점)\n` +
+    `</div>\n\n` +
+    `<div class="highlight">` +
+    `📅 <strong>활동 이력</strong>: 총 ${acts.length}건\n`;
+
+  acts.forEach((a,i) => {
+    const typeNames = {visit:'🔍 현장방문',meeting:'💬 회의',construction:'⚒️ 시공'};
+    report += `${i+1}. ${typeNames[a.type]} - ${a.date} ${a.content.slice(0,30)}${a.content.length>30?'...':''}\n`;
+  });
+
+  report += `</div>\n\n📸 첨부 사진: 총 ${totalPhotos}장\n\n` +
+    `데이터를 저장하시겠습니까?`;
+
+  addAiMsgWithChoices(report, ['💾 JSON 백업 다운로드','✅ 저장 완료']);
+}
+
+function handleReportChoice(choice) {
+  addUserMsg(choice);
+  if (choice.includes('JSON') || choice.includes('백업') || choice.includes('다운로드')) {
+    downloadJSON();
+    addAiMsg('✅ JSON 백업 파일이 다운로드되었습니다.\n\n구글드라이브에 업로드하시면 백업이 완료됩니다.');
+  }
+  addAiMsg(`✅ <strong>AS 데이터 저장 완료!</strong>\n\n` +
+    `저장 위치: LocalStorage (브라우저 내)\n\n` +
+    `📂 구글드라이브 백업 경로:\n` +
+    `방수명장AS백업/${currentCase.siteName?.replace(/\s/g,'_')}/${currentCase.caseId}/\n\n` +
+    `AS 대응 프로세스가 완료되었습니다.\n감사합니다! 🎉`);
+  updateSidebar();
+}
+
+// ──── UI 헬퍼 ────
+function addAiMsg(html) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  div.innerHTML = '<div class="label">🤖 방수명장 AI</div>' + html.replace(/\n/g,'<br>');
+  document.getElementById('chatMessages').appendChild(div);
+  scrollToBottom();
+}
+
+function addAiMsgWithChoices(html, choices) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  let choicesHtml = '<div class="choices">';
+  choices.forEach(c => {
+    choicesHtml += `<button class="choice-btn" onclick="handleChoiceClick(this,'${c.replace(/'/g,"\\'")}')">` +
+      `${c}</button>`;
+  });
+  choicesHtml += '</div>';
+  div.innerHTML = '<div class="label">🤖 방수명장 AI</div>' +
+    html.replace(/\n/g,'<br>') + choicesHtml;
+  document.getElementById('chatMessages').appendChild(div);
+  scrollToBottom();
+}
+
+function addUserMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.textContent = text;
+  document.getElementById('chatMessages').appendChild(div);
+  scrollToBottom();
+}
+
+function addSystemMsg(text) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-system';
+  div.textContent = '📌 ' + text;
+  document.getElementById('chatMessages').appendChild(div);
+  scrollToBottom();
+}
+
+function addPhotoPreview(photos) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-ai';
+  let html = '<div class="label">📸 첨부 사진</div><div class="photo-grid">';
+  photos.forEach(p => {
+    html += `<img class="photo-thumb" src="${p}" onclick="openModal('${p.substring(0,50)}...')" data-src="${p}">`;
+  });
+  html += '</div>';
+  div.innerHTML = html;
+  document.getElementById('chatMessages').appendChild(div);
+
+  // 클릭 이벤트 재바인딩
+  div.querySelectorAll('.photo-thumb').forEach(img => {
+    img.onclick = () => {
+      document.getElementById('modalImage').src = img.dataset.src;
+      document.getElementById('photoModal').classList.add('show');
+    };
+  });
+  scrollToBottom();
+}
+
+function closeModal() {
+  document.getElementById('photoModal').classList.remove('show');
+}
+
+function showSkipBtn(show) {
+  // 패스 가능 표시는 텍스트에 이미 포함됨
+}
+
+function scrollToBottom() {
+  const el = document.getElementById('chatMessages');
+  setTimeout(() => el.scrollTop = el.scrollHeight, 50);
+}
+
+function handleChoiceClick(btn, value) {
+  // 선택된 버튼 비활성화
+  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b => {
+    b.disabled = true;
+    b.style.opacity = '0.5';
+    b.style.cursor = 'default';
+  });
+  btn.classList.add('selected');
+  btn.style.opacity = '1';
+
+  // 현재 상태에 따라 분기
+  if (currentActivityData) {
+    const flow = ACTIVITY_FLOWS[currentActivityData.type];
+    const q = flow[activitySubStep];
+    if (q && q.type === 'choice') {
+      handleActivityAnswer(value);
+    } else {
+      handleActivityChoice(value);
+    }
+  } else if (QUESTIONS[currentStep] && QUESTIONS[currentStep].type === 'activity_hub') {
+    handleActivityChoice(value);
+  } else if (QUESTIONS[currentStep] && QUESTIONS[currentStep].type === 'complete') {
+    handleReportChoice(value);
+  } else {
+    handleAnswer(value);
+  }
+}
+
+// ──── 사이드바 ────
+function updateSidebar() {
+  document.querySelectorAll('.step-item').forEach(el => {
+    const step = parseInt(el.dataset.step);
+    el.classList.remove('active','done');
+    if (step < currentPhase) {
+      el.classList.add('done');
+      el.querySelector('.icon').textContent = '✅';
+    } else if (step === currentPhase) {
+      el.classList.add('active');
+    }
+  });
+}
+
+function renderActivitySidebar() {
+  const list = document.getElementById('activityList');
+  const typeNames = {visit:'방문',meeting:'회의',construction:'시공'};
+  const tagClasses = {visit:'tag-visit',meeting:'tag-meeting',construction:'tag-construction'};
+
+  let html = '<h4>활동 기록</h4>';
+  currentCase.activities.forEach((a,i) => {
+    html += `<div class="activity-item">` +
+      `<span class="tag ${tagClasses[a.type]}">${typeNames[a.type]}</span>` +
+      `${a.date} ${a.content.slice(0,15)}${a.content.length>15?'...':''}</div>`;
+  });
+  list.innerHTML = html;
+}
+
+// ──── 데이터 ────
+function setField(path, value) {
+  const parts = path.split('.');
+  let obj = currentCase;
+  for (let i = 0; i < parts.length - 1; i++) obj = obj[parts[i]];
+  obj[parts[parts.length-1]] = value;
+}
+
+function getFieldLabel(id) {
+  const labels = {
+    site_name:'현장명', site_overview:'현장 개요',
+    building_type:'건물 유형', area:'시공 부위',
+    size:'시공 면적', year:'준공 연도',
+    symptoms:'주요 증상', method:'기존 방수 공법',
+    first_date:'최초 발생일', client_name:'고객명',
+    client_phone:'연락처', client_addr:'주소'
+  };
+  return labels[id] || id;
+}
+
+function saveData() {
+  currentCase.updatedAt = new Date().toISOString();
+  // 저장 시 현재 진행 상태도 함께 저장
+  const saveObj = { ...currentCase, _progress: { currentStep, currentPhase } };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saveObj));
+  const indicator = document.getElementById('saveIndicator');
+  indicator.classList.add('show');
+  setTimeout(() => indicator.classList.remove('show'), 2000);
+}
+
+function restoreProgress() {
+  if (!currentCase) return;
+  const progress = currentCase._progress;
+  if (progress) {
+    currentStep = progress.currentStep;
+    currentPhase = progress.currentPhase;
+  }
+  document.getElementById('headerCaseId').textContent =
+    `${currentCase.caseId}${currentCase.siteName?' | '+currentCase.siteName:''}`;
+  updateSidebar();
+  renderActivitySidebar();
+  askNext();
+}
+
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(currentCase, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (currentCase.siteName||'AS').replace(/[^가-힣a-zA-Z0-9]/g,'_');
+  a.href = url;
+  a.download = `AS백업_${safeName}_${currentCase.caseId}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showProgress() {
+  const phases = ['공문 접수','상세 정보','긴급도 판단','활동 기록','완료 & 저장'];
+  let msg = '📍 <strong>현재 진행 상황</strong>\n\n';
+  phases.forEach((name, i) => {
+    const step = i + 1;
+    if (step < currentPhase) msg += `✅ Step ${step}: ${name} (완료)\n`;
+    else if (step === currentPhase) msg += `🔄 Step ${step}: ${name} (진행 중)\n`;
+    else msg += `⏳ Step ${step}: ${name} (대기)\n`;
+  });
+  addAiMsg(msg);
+}
+
+// ──── 이벤트 바인딩 ────
+document.getElementById('btnSend').addEventListener('click', () => {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  if (currentActivityData) {
+    if (waitingForMultiInput) handleMultiInput(text);
+    else handleActivityAnswer(text);
+  } else {
+    handleAnswer(text);
+  }
+});
+
+document.getElementById('userInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('btnSend').click();
+  }
+});
+
+// textarea 자동 높이 조절
+document.getElementById('userInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+document.getElementById('btnPhoto').addEventListener('click', () => {
+  document.getElementById('photoInput').click();
+});
+
+document.getElementById('photoInput').addEventListener('change', (e) => {
+  if (e.target.files.length) {
+    handlePhotos(e.target.files);
+    e.target.value = '';
+  }
+});
+
+// 모달 닫기
+document.getElementById('photoModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ──── 시작 ────
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
