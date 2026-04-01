@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>방수명장 AS 대응 시스템</title>
+<title>(주)아이디에프이앤씨 AS 대응 시스템</title>
 <style>
 /* ====== 리셋 & 기본 ====== */
 *{margin:0;padding:0;box-sizing:border-box}
@@ -109,7 +109,7 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 
 <!-- 헤더 -->
 <div class="header">
-  <h1>🔧 방수명장 AS 대응 시스템</h1>
+  <h1>🔧 (주)아이디에프이앤씨 AS 대응 시스템</h1>
   <div class="header-info">
     <span class="case-id" id="headerCaseId">새 AS</span>
     <span class="save-indicator" id="saveIndicator">💾 저장됨</span>
@@ -157,7 +157,7 @@ body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0
 
 <script>
 // ═══════════════════════════════════════════════════════
-// 방수명장 AS 대응 시스템 - 대화형 프로세스
+// (주)아이디에프이앤씨 AS 대응 시스템 - 대화형 프로세스
 // ═══════════════════════════════════════════════════════
 
 // ──── 데이터 모델 ────
@@ -219,7 +219,7 @@ function startNewCase() {
 const QUESTIONS = [
   // === Step 1: 공문 접수 ===
   { phase:1, id:'doc_photo', type:'photo',
-    ask:'안녕하세요, 방수명장 AS 시스템입니다. 🔧\n\nAS 공문 사진을 업로드해주세요.\n(여러 장 업로드 가능, 없으면 "패스")',
+    ask:'안녕하세요, (주)아이디에프이앤씨 AS 시스템입니다. 🔧\n\nAS 공문 사진을 업로드해주세요.\n(여러 장 업로드 가능, 없으면 "패스")',
     field:'officialDocPhotos', optional:true },
   { phase:1, id:'site_name', type:'text',
     ask:'현장명을 알려주세요.\n\n예) OO아파트 101동 옥상 방수공사',
@@ -735,7 +735,7 @@ function handleReportChoice(choice) {
   addAiMsg(`✅ <strong>AS 데이터 저장 완료!</strong>\n\n` +
     `저장 위치: LocalStorage (브라우저 내)\n\n` +
     `📂 구글드라이브 백업 경로:\n` +
-    `방수명장AS백업/${currentCase.siteName?.replace(/\s/g,'_')}/${currentCase.caseId}/\n\n` +
+    `아이디에프이앤씨_AS백업/${currentCase.siteName?.replace(/\s/g,'_')}/${currentCase.caseId}/\n\n` +
     `AS 대응 프로세스가 완료되었습니다.\n감사합니다! 🎉`);
   updateSidebar();
 }
@@ -744,7 +744,7 @@ function handleReportChoice(choice) {
 function addAiMsg(html) {
   const div = document.createElement('div');
   div.className = 'msg msg-ai';
-  div.innerHTML = '<div class="label">🤖 방수명장 AI</div>' + html.replace(/\n/g,'<br>');
+  div.innerHTML = '<div class="label">🤖 IDF E&C AI</div>' + html.replace(/\n/g,'<br>');
   document.getElementById('chatMessages').appendChild(div);
   scrollToBottom();
 }
@@ -758,7 +758,7 @@ function addAiMsgWithChoices(html, choices) {
       `${c}</button>`;
   });
   choicesHtml += '</div>';
-  div.innerHTML = '<div class="label">🤖 방수명장 AI</div>' +
+  div.innerHTML = '<div class="label">🤖 IDF E&C AI</div>' +
     html.replace(/\n/g,'<br>') + choicesHtml;
   document.getElementById('chatMessages').appendChild(div);
   scrollToBottom();
