@@ -42,7 +42,20 @@
       "Bash(pip install:*)",
       "Bash(robocopy \"G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\" \"C:\\\\Users\\\\kjc06\\\\클로드 작업기록\\\\idfenc_meet\\\\스킬백업\" /E /XO /NFL /NDL /NP)",
       "Bash(robocopy \"G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\" \"C:\\\\Users\\\\kjc06\\\\클로드 작업기록\\\\idfenc_meet\\\\스킬백업\" /E /XO /NFL /NDL /NP /NJS /NJH)",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(cp -ru \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/skills/\"* \"G:/내 드라이브/클로드작업기록/스킬백업/\")",
+      "Bash(cp -ru \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/waterproof-as-sync/\"* \"G:/내 드라이브/클로드작업기록/방수명장/AS대응프로세스/\")",
+      "Bash(mkdir -p \"/tmp/as_unzip\")",
+      "Read(//tmp/**)",
+      "Bash(unzip -o \"C:/Users/kjc06/OneDrive/Desktop/AS대응프로세스_20260401_141235.zip\")",
+      "Bash(wc -l /tmp/as_unzip/*.md /tmp/as_unzip/*.html)",
+      "Bash(cp /tmp/as_unzip/*.md \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/waterproof-as-sync/\")",
+      "Bash(cp /tmp/as_unzip/*.html \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/waterproof-as-sync/\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(find '/c/Users/kjc06/클로드 작업기록/idfenc_meet/waterproof-as-sync' -type f -name *.py)",
+      "Bash(python as_calendar.py /tmp/test_as.json)",
+      "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\")",
+      "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\" --gcal)"
     ]
   }
 }

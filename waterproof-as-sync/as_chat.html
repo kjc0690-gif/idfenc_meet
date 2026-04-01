@@ -723,15 +723,34 @@ function showReport() {
   report += `</div>\n\n📸 첨부 사진: 총 ${totalPhotos}장\n\n` +
     `데이터를 저장하시겠습니까?`;
 
-  addAiMsgWithChoices(report, ['💾 JSON 백업 다운로드','✅ 저장 완료']);
+  addAiMsgWithChoices(report, [
+    '💾 JSON 백업 다운로드',
+    '📊 엑셀 양식 다운로드',
+    '📅 캘린더 일정 보기',
+    '✅ 저장 완료'
+  ]);
 }
 
 function handleReportChoice(choice) {
   addUserMsg(choice);
-  if (choice.includes('JSON') || choice.includes('백업') || choice.includes('다운로드')) {
+
+  if (choice.includes('JSON') || choice.includes('백업')) {
     downloadJSON();
     addAiMsg('✅ JSON 백업 파일이 다운로드되었습니다.\n\n구글드라이브에 업로드하시면 백업이 완료됩니다.');
+    setTimeout(showReport, 800);
+    return;
   }
+
+  if (choice.includes('엑셀')) {
+    downloadExcelData();
+    return;
+  }
+
+  if (choice.includes('캘린더')) {
+    showCalendarEvents();
+    return;
+  }
+
   addAiMsg(`✅ <strong>AS 데이터 저장 완료!</strong>\n\n` +
     `저장 위치: LocalStorage (브라우저 내)\n\n` +
     `📂 구글드라이브 백업 경로:\n` +
@@ -739,6 +758,149 @@ function handleReportChoice(choice) {
     `AS 대응 프로세스가 완료되었습니다.\n감사합니다! 🎉`);
   updateSidebar();
 }
+
+// ──── 엑셀 양식 데이터 다운로드 ────
+function downloadExcelData() {
+  // JSON 데이터를 엑셀 생성용으로 다운로드 (create_excel.py와 연동)
+  const excelData = {
+    ...currentCase,
+    _excelRequest: true,
+    _requestedAt: new Date().toISOString(),
+    _templates: ['공문접수서']
+  };
+
+  // 활동별 템플릿 추가
+  if (currentCase.activities) {
+    currentCase.activities.forEach(a => {
+      if (a.type === 'meeting' && !excelData._templates.includes('회의록'))
+        excelData._templates.push('회의록');
+      if (a.type === 'construction' && !excelData._templates.includes('시공일지'))
+        excelData._templates.push('시공일지');
+    });
+  }
+
+  // Base64 사진 제거 (용량 줄이기)
+  const cleanData = JSON.parse(JSON.stringify(excelData));
+  cleanData.officialDocPhotos = (cleanData.officialDocPhotos||[]).map(() => '[사진]');
+  if (cleanData.activities) {
+    cleanData.activities.forEach(a => {
+      if (a.photos) a.photos = a.photos.map(() => '[사진]');
+    });
+  }
+
+  const blob = new Blob([JSON.stringify(cleanData, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (currentCase.siteName||'AS').replace(/[^가-힣a-zA-Z0-9]/g,'_');
+  a.href = url;
+  a.download = `AS엑셀데이터_${safeName}_${currentCase.caseId}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  const templates = excelData._templates.join(', ');
+  addAiMsg(`📊 <strong>엑셀 양식 데이터 다운로드 완료!</strong>\n\n` +
+    `생성 가능한 양식: ${templates}\n\n` +
+    `<div class="highlight">` +
+    `<strong>엑셀 파일 생성 방법:</strong>\n` +
+    `Claude Code에서 아래 명령어를 실행하세요:\n\n` +
+    `<code>python create_excel.py AS엑셀데이터_${safeName}_${currentCase.caseId}.json</code>\n\n` +
+    `→ 공문접수서, 회의록, 시공일지가 자동 생성됩니다.</div>`);
+
+  setTimeout(showReport, 800);
+}
+
+// ──── 캘린더 일정 보기 ────
+function showCalendarEvents() {
+  const events = extractCalendarEvents();
+
+  if (events.length === 0) {
+    addAiMsg('📅 등록할 일정이 없습니다.\n활동 기록에 날짜가 포함된 항목이 필요합니다.');
+    setTimeout(showReport, 800);
+    return;
+  }
+
+  let msg = `📅 <strong>구글 캘린더 등록 가능 일정: ${events.length}건</strong>\n\n`;
+
+  events.forEach((ev, i) => {
+    const typeEmoji = {visit:'🔍', meeting:'💬', construction:'⚒️', action_item:'📌'};
+    msg += `<div class="highlight">` +
+      `${i+1}. ${typeEmoji[ev.type]||'📅'} <strong>${ev.title}</strong>\n` +
+      `   날짜: ${ev.date}\n` +
+      `   시간: ${ev.startTime} ~ ${ev.endTime}\n` +
+      `   캘린더: ${ev.calendar}</div>\n`;
+  });
+
+  msg += `\n캘린더에 등록하시겠습니까?`;
+
+  addAiMsgWithChoices(msg, ['📅 캘린더 데이터 다운로드', '⬅️ 돌아가기']);
+
+  // 임시로 캘린더 선택 핸들러 설정
+  window._calendarEvents = events;
+  window._calendarMode = true;
+}
+
+function extractCalendarEvents() {
+  const events = [];
+  const site = currentCase.siteName || 'AS 현장';
+  const caseId = currentCase.caseId || '';
+
+  const config = {
+    visit: { label:'현장방문', duration:2, defaultTime:'10:00', calendar:'업무' },
+    meeting: { label:'회의', duration:1.5, defaultTime:'14:00', calendar:'업무' },
+    construction: { label:'시공', duration:8, defaultTime:'08:00', calendar:'현장스케줄' }
+  };
+
+  (currentCase.activities || []).forEach(activity => {
+    if (!activity.date) return;
+    const cfg = config[activity.type] || config.visit;
+    const time = activity.time || cfg.defaultTime;
+
+    // 종료 시간 계산
+    const [h, m] = time.split(':').map(Number);
+    const endH = h + Math.floor(cfg.duration);
+    const endM = m + Math.round((cfg.duration % 1) * 60);
+    const endTime = `${String(endH + Math.floor(endM/60)).padStart(2,'0')}:${String(endM%60).padStart(2,'0')}`;
+
+    events.push({
+      title: `[AS] ${site} - ${cfg.label}`,
+      date: activity.date,
+      startTime: time,
+      endTime: endTime,
+      start: `${activity.date}T${time}:00`,
+      end: `${activity.date}T${endTime}:00`,
+      description: `AS번호: ${caseId}\n현장명: ${site}\n활동: ${cfg.label}\n내용: ${activity.content||''}`,
+      calendar: cfg.calendar,
+      type: activity.type,
+      timezone: 'Asia/Seoul'
+    });
+
+    // 회의 액션아이템 기한
+    if (activity.type === 'meeting' && activity.meetingMinutes) {
+      (activity.meetingMinutes.actionItems || []).forEach(item => {
+        if (item.deadline) {
+          events.push({
+            title: `[AS 액션] ${item.task} - ${item.assignee||''}`,
+            date: item.deadline,
+            startTime: '09:00',
+            endTime: '09:30',
+            start: `${item.deadline}T09:00:00`,
+            end: `${item.deadline}T09:30:00`,
+            description: `AS번호: ${caseId}\n할일: ${item.task}\n담당: ${item.assignee||''}\n회의일: ${activity.date}`,
+            calendar: '업무',
+            type: 'action_item',
+            timezone: 'Asia/Seoul'
+          });
+        }
+      });
+    }
+  });
+
+  return events;
+}
+
+// 기존 handleChoiceClick에 캘린더 모드 추가
+const _origHandleChoiceClick = handleChoiceClick;
+// (handleChoiceClick 내부에서 캘린더 처리 추가는 아래 별도 오버라이드)
 
 // ──── UI 헬퍼 ────
 function addAiMsg(html) {
@@ -823,6 +985,20 @@ function handleChoiceClick(btn, value) {
   });
   btn.classList.add('selected');
   btn.style.opacity = '1';
+
+  // 캘린더 모드 처리
+  if (window._calendarMode) {
+    window._calendarMode = false;
+    if (value.includes('캘린더') && value.includes('다운로드')) {
+      addUserMsg(value);
+      downloadCalendarData();
+    } else {
+      addUserMsg(value);
+      addAiMsg('⬅️ 보고서로 돌아갑니다.');
+      setTimeout(showReport, 500);
+    }
+    return;
+  }
 
   // 현재 상태에 따라 분기
   if (currentActivityData) {
@@ -923,6 +1099,43 @@ function downloadJSON() {
   a.download = `AS백업_${safeName}_${currentCase.caseId}_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadCalendarData() {
+  const events = window._calendarEvents || extractCalendarEvents();
+  if (!events.length) {
+    addAiMsg('등록할 일정이 없습니다.');
+    setTimeout(showReport, 600);
+    return;
+  }
+
+  // gcal_create_event에 맞는 형식으로 변환
+  const gcalEvents = events.map(ev => ({
+    summary: ev.title,
+    start_time: ev.start,
+    end_time: ev.end,
+    description: ev.description,
+    timezone: 'Asia/Seoul'
+  }));
+
+  const blob = new Blob([JSON.stringify(gcalEvents, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (currentCase.siteName||'AS').replace(/[^가-힣a-zA-Z0-9]/g,'_');
+  a.href = url;
+  a.download = `AS캘린더_${safeName}_${currentCase.caseId}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  addAiMsg(`📅 <strong>캘린더 데이터 다운로드 완료!</strong>\n\n` +
+    `총 ${events.length}건의 일정 데이터\n\n` +
+    `<div class="highlight">` +
+    `<strong>구글 캘린더 자동 등록 방법:</strong>\n\n` +
+    `Claude Code에서 아래 명령어를 실행하세요:\n\n` +
+    `<code>python as_calendar.py AS캘린더_${safeName}_${currentCase.caseId}.json</code>\n\n` +
+    `→ 회의일, 시공일, 방문일이 구글캘린더에 자동 등록됩니다.</div>`);
+
+  setTimeout(showReport, 800);
 }
 
 function showProgress() {
