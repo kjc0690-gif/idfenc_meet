@@ -36,7 +36,13 @@
       "Bash(python /tmp/create_superflat_marketing.py)",
       "Bash(python create_superflat_marketing.py)",
       "Bash(python create_sales_db.py)",
-      "Bash(python create_sales_log.py)"
+      "Bash(python create_sales_log.py)",
+      "Bash(python \"C:/Users/kjc06/클로드 작업기록/idfenc_meet/email-results/scripts/send_email.py\" --to \"admin@idfkorea.co.kr\" --subject \"[TBM] 농협은행 울산영업부 \\(3/31~4/1 작업없음\\)\" --body \"농협은행 울산영업부 TBM 보고합니다.:*)",
+      "Bash(pip --version)",
+      "Bash(pip install:*)",
+      "Bash(robocopy \"G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\" \"C:\\\\Users\\\\kjc06\\\\클로드 작업기록\\\\idfenc_meet\\\\스킬백업\" /E /XO /NFL /NDL /NP)",
+      "Bash(robocopy \"G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\" \"C:\\\\Users\\\\kjc06\\\\클로드 작업기록\\\\idfenc_meet\\\\스킬백업\" /E /XO /NFL /NDL /NP /NJS /NJH)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
