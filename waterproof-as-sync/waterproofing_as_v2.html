@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방수명장 AS대응 시스템 v2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .case-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* 메인 레이아웃 */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* 사이드바 */
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .site-name-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .case-id-display {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        
+        .status-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .nav-section {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .nav-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .nav-item {
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-item:hover {
+            background: #e9ecef;
+        }
+        
+        .nav-item.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .nav-item-icon {
+            font-size: 18px;
+        }
+        
+        .nav-item-text {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .nav-item-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .add-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: white;
+            border: 2px dashed #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .add-btn:hover {
+            background: #f0f2ff;
+        }
+        
+        /* 콘텐츠 영역 */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #ffffff;
+        }
+        
+        .content-header {
+            margin-bottom: 30px;
+        }
+        
+        .content-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .content-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 폼 스타일 */
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        .form-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group label .required {
+            color: #dc3545;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group input[type="date"],
+        .form-group input[type="datetime-local"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 버튼 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        /* 알림 박스 */
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #0c5460;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #856404;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #155724;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #721c24;
+        }
+        
+        /* AI 분석 패널 */
+        .ai-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .ai-panel-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ai-panel-body {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        /* 사진 업로드 */
+        .photo-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+        
+        .photo-upload-area:hover {
+            background: #f0f2ff;
+            border-color: #5568d3;
+        }
+        
+        .photo-upload-area.dragover {
+            background: #e8ebff;
+            border-color: #4451b8;
+        }
+        
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .photo-item {
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-item-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .photo-item-btn {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .photo-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            font-size: 11px;
+        }
+        
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 푸터 */
+        .footer {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .auto-save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .save-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        /* 체크리스트 */
+        .checklist {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .checklist-item {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">🏗️ 방수명장</div>
+                <div class="case-info" id="headerCaseInfo">AS 관리 시스템 v2.0</div>
+            </div>
+            <div class="header-right">
+                <button class="header-btn" onclick="showCaseList()">📂 AS 목록</button>
+                <button class="header-btn" onclick="exportData()">💾 백업</button>
+                <button class="header-btn" onclick="newCase()">➕ 새 AS</button>
+            </div>
+        </div>
+        
+        <!-- 메인 레이아웃 -->
+        <div class="main-layout">
+            <!-- 사이드바 -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="site-name-display" id="siteNameDisplay">
+                        <span>🏗️</span>
+                        <span>새 AS 접수</span>
+                    </div>
+                    <div class="case-id-display" id="caseIdDisplay">-</div>
+                    <div class="status-badge status-progress" id="statusBadge">진행중</div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-title">기본 단계</div>
+                    <div class="nav-item active" onclick="showStep('document')">
+                        <span class="nav-item-icon">📄</span>
+                        <span class="nav-item-text">공문 접수</span>
+                    </div>
+                    <div class="nav-item" onclick="showStep('basic')">
+                        <span class="nav-item-icon">📋</span>
+                        <span class="nav-item-text">기본 정보</span>
+                    </div>
+                    <div class="nav-item" onclick="showStep('urgency')">
+                        <span class="nav-item-icon">⚡</span>
+                        <span class="nav-item-text">긴급도 판단</span>
+                    </div>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-title">활동 기록</div>
+                    <div id="activityList">
+                        <!-- 동적 생성 -->
+                    </div>
+                    <button class="add-btn" onclick="addActivity()">➕ 활동 추가</button>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-title">시공 관리</div>
+                    <div id="constructionList">
+                        <!-- 동적 생성 -->
+                    </div>
+                    <button class="add-btn" onclick="addDailyLog()">➕ 일지 추가</button>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-item" onclick="showStep('completion')">
+                        <span class="nav-item-icon">✅</span>
+                        <span class="nav-item-text">완료 검사</span>
+                    </div>
+                    <div class="nav-item" onclick="showStep('report')">
+                        <span class="nav-item-icon">📊</span>
+                        <span class="nav-item-text">종합 보고서</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 콘텐츠 영역 -->
+            <div class="content-area" id="contentArea">
+                <!-- 동적 콘텐츠 -->
+            </div>
+        </div>
+        
+        <!-- 푸터 -->
+        <div class="footer">
+            <div class="auto-save-indicator">
+                <div class="save-dot"></div>
+                <span>자동 저장됨</span>
+                <span id="lastSaveTime">-</span>
+            </div>
+            <div>
+                <span>방수명장 AS 시스템 v2.0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 모달 -->
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modalContent">
+            <!-- 동적 콘텐츠 -->
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentCase = null;
+        let currentStep = 'document';
+        
+        // 데이터 구조
+        function createNewCase() {
+            return {
+                version: "2.0",
+                metadata: {
+                    caseId: generateCaseId(),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    status: "진행중",
+                    assignee: "",
+                    aidrivePath: ""
+                },
+                document: {
+                    uploaded: false,
+                    files: [],
+                    aiAnalysis: null
+                },
+                basicInfo: {
+                    siteName: "",
+                    siteOverview: "",
+                    buildingType: "",
+                    location: "",
+                    address: "",
+                    customerName: "",
+                    phone: "",
+                    symptoms: ""
+                },
+                urgency: {
+                    level: "일반",
+                    checklist: {},
+                    leakTime: "",
+                    leakCondition: ""
+                },
+                activities: [],
+                construction: {
+                    startDate: "",
+                    endDate: "",
+                    dailyLogs: []
+                },
+                completion: null,
+                summary: {
+                    totalActivities: 0,
+                    totalDays: 0,
+                    totalCost: 0,
+                    totalPhotos: 0
+                }
+            };
+        }
+        
+        // 접수번호 생성
+        function generateCaseId() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+            const timeStr = now.getTime().toString().slice(-4);
+            return `AS${dateStr}-${timeStr}`;
+        }
+        
+        // 초기화
+        function init() {
+            // 저장된 케이스가 있는지 확인
+            const savedCaseId = localStorage.getItem('currentCaseId');
+            if (savedCaseId) {
+                const savedCase = loadCase(savedCaseId);
+                if (savedCase) {
+                    currentCase = savedCase;
+                    updateUI();
+                    showStep('document');
+                    return;
+                }
+            }
+            
+            // 새 케이스 생성
+            newCase();
+        }
+        
+        // 새 AS 생성
+        function newCase() {
+            if (confirm('새로운 AS를 접수하시겠습니까?')) {
+                currentCase = createNewCase();
+                localStorage.setItem('currentCaseId', currentCase.metadata.caseId);
+                saveCase();
+                updateUI();
+                showStep('document');
+            }
+        }
+        
+        // UI 업데이트
+        function updateUI() {
+            // 헤더 업데이트
+            document.getElementById('headerCaseInfo').textContent = 
+                currentCase.basicInfo.siteName || '새 AS 접수';
+            
+            // 사이드바 업데이트
+            document.getElementById('siteNameDisplay').innerHTML = 
+                `<span>🏗️</span><span>${currentCase.basicInfo.siteName || '새 AS 접수'}</span>`;
+            document.getElementById('caseIdDisplay').textContent = currentCase.metadata.caseId;
+            
+            // 활동 목록 업데이트
+            updateActivityList();
+            
+            // 시공 목록 업데이트
+            updateConstructionList();
+        }
+        
+        // 활동 목록 업데이트
+        function updateActivityList() {
+            const list = document.getElementById('activityList');
+            list.innerHTML = currentCase.activities.map((act, idx) => `
+                <div class="nav-item" onclick="viewActivity(${idx})">
+                    <span class="nav-item-icon">${act.status === 'completed' ? '✅' : '⏳'}</span>
+                    <span class="nav-item-text">${act.title}</span>
+                    <span class="nav-item-badge">${act.sequence}차</span>
+                </div>
+            `).join('');
+        }
+        
+        // 시공 목록 업데이트
+        function updateConstructionList() {
+            const list = document.getElementById('constructionList');
+            list.innerHTML = currentCase.construction.dailyLogs.map((log, idx) => `
+                <div class="nav-item" onclick="viewDailyLog(${idx})">
+                    <span class="nav-item-icon">📋</span>
+                    <span class="nav-item-text">${log.date}</span>
+                    <span class="nav-item-badge">${log.day}일차</span>
+                </div>
+            `).join('');
+        }
+        
+        // 단계 표시
+        function showStep(step) {
+            currentStep = step;
+            const content = document.getElementById('contentArea');
+            
+            // 네비게이션 활성화
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            switch(step) {
+                case 'document':
+                    content.innerHTML = renderDocumentStep();
+                    break;
+                case 'basic':
+                    content.innerHTML = renderBasicInfoStep();
+                    break;
+                case 'urgency':
+                    content.innerHTML = renderUrgencyStep();
+                    break;
+                case 'completion':
+                    content.innerHTML = renderCompletionStep();
+                    break;
+                case 'report':
+                    content.innerHTML = renderReportStep();
+                    break;
+            }
+        }
+        
+        // 공문 접수 단계
+        function renderDocumentStep() {
+            return `
+                <div class="content-header">
+                    <div class="content-title">📄 AS 공문 접수</div>
+                    <div class="content-subtitle">공문 및 관련 서류를 업로드하고 AI 분석을 받습니다 (선택사항)</div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">공문 및 첨부 서류</div>
+                    
+                    <div class="photo-upload-area" onclick="document.getElementById('docFileInput').click()"
+                         ondragover="handleDragOver(event)" ondrop="handleDocDrop(event)">
+                        <div style="font-size: 48px; margin-bottom: 10px;">📄</div>
+                        <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">
+                            파일을 드래그하거나 클릭하여 업로드
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            지원 형식: JPG, PNG, PDF (최대 10MB)
+                        </div>
+                    </div>
+                    <input type="file" id="docFileInput" multiple accept="image/*,.pdf" 
+                           style="display:none" onchange="handleDocUpload(event)">
+                    
+                    <div id="docGallery" class="photo-gallery">
+                        ${currentCase.document.files.map((file, idx) => `
+                            <div class="photo-item">
+                                <img src="${file.base64}" alt="${file.name}">
+                                <div class="photo-item-actions">
+                                    <button class="photo-item-btn" onclick="removeDocFile(${idx})">🗑️</button>
+                                </div>
+                                <div class="photo-caption">${file.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${currentCase.document.files.length > 0 ? `
+                        <button class="btn btn-primary" onclick="analyzeDocument()" style="margin-top: 20px;">
+                            🤖 AI 분석 시작
+                        </button>
+                    ` : ''}
+                </div>
+                
+                ${currentCase.document.aiAnalysis ? `
+                    <div class="ai-panel">
+                        <div class="ai-panel-header">
+                            <span>🤖</span>
+                            <span>AI 분석 결과</span>
+                        </div>
+                        <div class="ai-panel-body">
+                            <p><strong>분석 완료!</strong></p>
+                            <p>공문 내용이 분석되었습니다.</p>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <div class="info-box">
+                    <strong>💡 안내</strong><br>
+                    공문이 없는 경우 이 단계를 건너뛰고 바로 기본정보를 입력하실 수 있습니다.
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="showStep('basic')">
+                        다음: 기본정보 입력 →
+                    </button>
+                </div>
+            `;
+        }
+        
+        // 기본정보 단계
+        function renderBasicInfoStep() {
+            return `
+                <div class="content-header">
+                    <div class="content-title">📋 기본 정보 입력</div>
+                    <div class="content-subtitle">현장 및 고객 정보를 입력합니다</div>
+                </div>
+                
+                <form id="basicInfoForm" onsubmit="saveBasicInfo(event)">
+                    <div class="form-section">
+                        <div class="form-section-title">현장 정보</div>
+                        
+                        <div class="form-group">
+                            <label>
+                                📋 현장명 <span class="required">*</span>
+                            </label>
+                            <input type="text" id="siteName" value="${currentCase.basicInfo.siteName}" 
+                                   placeholder="예: OO아파트 101동 옥상 방수공사" required maxlength="100">
+                            <small>AI드라이브 폴더명으로 사용됩니다</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                📝 현장 개요
+                            </label>
+                            <textarea id="siteOverview" placeholder="현장의 전반적인 상황을 요약하여 입력하세요.&#10;예: OO아파트 101동 옥상은 2015년 준공되었으며, 우레탄 도막방수로 시공되었으나 경년열화로 균열 발생. 10층 주민 민원으로 인한 긁 AS 요청...">${currentCase.basicInfo.siteOverview}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                🏢 건물 유형 <span class="required">*</span>
+                            </label>
+                            <select id="buildingType" required>
+                                <option value="">선택하세요</option>
+                                <option value="아파트" ${currentCase.basicInfo.buildingType === '아파트' ? 'selected' : ''}>아파트</option>
+                                <option value="주택" ${currentCase.basicInfo.buildingType === '주택' ? 'selected' : ''}>단독/다가구 주택</option>
+                                <option value="오피스텔" ${currentCase.basicInfo.buildingType === '오피스텔' ? 'selected' : ''}>오피스텔</option>
+                                <option value="상가" ${currentCase.basicInfo.buildingType === '상가' ? 'selected' : ''}>상가/근린생활시설</option>
+                                <option value="빌딩" ${currentCase.basicInfo.buildingType === '빌딩' ? 'selected' : ''}>업무용 빌딩</option>
+                                <option value="공장" ${currentCase.basicInfo.buildingType === '공장' ? 'selected' : ''}>공장/창고</option>
+                                <option value="학교" ${currentCase.basicInfo.buildingType === '학교' ? 'selected' : ''}>학교/교육시설</option>
+                                <option value="기타" ${currentCase.basicInfo.buildingType === '기타' ? 'selected' : ''}>기타</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                📍 시공 부위 <span class="required">*</span>
+                            </label>
+                            <select id="location" required>
+                                <option value="">선택하세요</option>
+                                <option value="옥상" ${currentCase.basicInfo.location === '옥상' ? 'selected' : ''}>옥상</option>
+                                <option value="욕실" ${currentCase.basicInfo.location === '욕실' ? 'selected' : ''}>욕실/화장실</option>
+                                <option value="발코니" ${currentCase.basicInfo.location === '발코니' ? 'selected' : ''}>발코니/베란다</option>
+                                <option value="외벽" ${currentCase.basicInfo.location === '외벽' ? 'selected' : ''}>외벽</option>
+                                <option value="지하실" ${currentCase.basicInfo.location === '지하실' ? 'selected' : ''}>지하실</option>
+                                <option value="지하주차장" ${currentCase.basicInfo.location === '지하주차장' ? 'selected' : ''}>지하주차장</option>
+                                <option value="물탱크" ${currentCase.basicInfo.location === '물탱크' ? 'selected' : ''}>물탱크</option>
+                                <option value="테라스" ${currentCase.basicInfo.location === '테라스' ? 'selected' : ''}>테라스/옥상정원</option>
+                                <option value="기타" ${currentCase.basicInfo.location === '기타' ? 'selected' : ''}>기타</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                🏠 주소
+                            </label>
+                            <input type="text" id="address" value="${currentCase.basicInfo.address}" 
+                                   placeholder="서울시 강남구...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">고객 정보</div>
+                        
+                        <div class="form-group">
+                            <label>
+                                👤 고객명
+                            </label>
+                            <input type="text" id="customerName" value="${currentCase.basicInfo.customerName}" 
+                                   placeholder="홍길동">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                📞 연락처
+                            </label>
+                            <input type="tel" id="phone" value="${currentCase.basicInfo.phone}" 
+                                   placeholder="010-1234-5678">
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">증상 정보</div>
+                        
+                        <div class="form-group">
+                            <label>
+                                💧 주요 증상 <span class="required">*</span>
+                            </label>
+                            <textarea id="symptoms" required 
+                                      placeholder="예시: 천장에서 물이 떨어짐, 벽면에 곰팡이, 바닥이 축축함 등 구체적으로 작성해주세요">${currentCase.basicInfo.symptoms}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px; display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="showStep('document')">
+                            ← 이전
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            저장하고 다음 단계 →
+                        </button>
+                    </div>
+                </form>
+            `;
+        }
+        
+        // 긴급도 판단 단계
+        function renderUrgencyStep() {
+            return `
+                <div class="content-header">
+                    <div class="content-title">⚡ 긴급도 판단</div>
+                    <div class="content-subtitle">현장 긴급도를 평가합니다</div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">긴급 상황 체크리스트</div>
+                    
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="urgent1" onchange="calculateUrgency()">
+                            <label for="urgent1">현재 누수가 진행 중이다 (물이 계속 떨어지거나 흐른다)</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="urgent2" onchange="calculateUrgency()">
+                            <label for="urgent2">누수로 인해 전기 위험이 있다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="urgent3" onchange="calculateUrgency()">
+                            <label for="urgent3">층간 누수가 발생하여 이웃 민원이 있다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="urgent4" onchange="calculateUrgency()">
+                            <label for="urgent4">물이 고여 있어 2차 피해 우려가 있다</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="urgent5" onchange="calculateUrgency()">
+                            <label for="urgent5">구조물 안전에 영향을 줄 수 있다</label>
+                        </div>
+                    </div>
+                    
+                    <div id="urgencyResult"></div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>📅 누수 발생 시점</label>
+                        <select id="leakTime">
+                            <option value="1일이내">1일 이내</option>
+                            <option value="3일이내">2-3일 전</option>
+                            <option value="1주일이내">1주일 이내</option>
+                            <option value="1개월이내">1개월 이내</option>
+                            <option value="1개월이상">1개월 이상</option>
+                            <option value="간헐적">간헐적 발생</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🌧️ 누수 발생 조건</label>
+                        <select id="leakCondition">
+                            <option value="항상">항상 발생</option>
+                            <option value="우천시">비 올 때만</option>
+                            <option value="대우천시">폭우 시에만</option>
+                            <option value="물사용시">물 사용 시</option>
+                            <option value="야간">야간/새벽에</option>
+                            <option value="불규칙">불규칙</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="showStep('basic')">
+                        ← 이전
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveUrgency()">
+                        저장하고 활동 관리로 →
+                    </button>
+                </div>
+            `;
+        }
+        
+        // 완료 검사 단계
+        function renderCompletionStep() {
+            return `
+                <div class="content-header">
+                    <div class="content-title">✅ 완료 검사</div>
+                    <div class="content-subtitle">시공 완료 후 최종 검사를 수행합니다</div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>🚧 개발 중</strong><br>
+                    완료 검사 기능은 현재 개발 중입니다.
+                </div>
+            `;
+        }
+        
+        // 종합 보고서 단계
+        function renderReportStep() {
+            return `
+                <div class="content-header">
+                    <div class="content-title">📊 종합 보고서</div>
+                    <div class="content-subtitle">전체 AS 내역을 종합하여 보고서를 생성합니다</div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">AS 요약</div>
+                    <p><strong>접수번호:</strong> ${currentCase.metadata.caseId}</p>
+                    <p><strong>현장명:</strong> ${currentCase.basicInfo.siteName || '-'}</p>
+                    <p><strong>진행 상태:</strong> ${currentCase.metadata.status}</p>
+                    <p><strong>활동 횟수:</strong> ${currentCase.activities.length}회</p>
+                    <p><strong>시공 일수:</strong> ${currentCase.construction.dailyLogs.length}일</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="exportData()">
+                        📥 보고서 다운로드
+                    </button>
+                </div>
+            `;
+        }
+        
+        // 공문 업로드 처리
+        function handleDocUpload(event) {
+            const files = event.target.files;
+            processDocFiles(files);
+        }
+        
+        function handleDocDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const files = event.dataTransfer.files;
+            processDocFiles(files);
+        }
+        
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        function processDocFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('파일 크기는 10MB를 초과할 수 없습니다.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentCase.document.files.push({
+                        id: 'doc_' + Date.now() + '_' + Math.random(),
+                        name: file.name,
+                        base64: e.target.result,
+                        uploadedAt: new Date().toISOString()
+                    });
+                    currentCase.document.uploaded = true;
+                    saveCase();
+                    showStep('document');
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function removeDocFile(idx) {
+            if (confirm('이 파일을 삭제하시겠습니까?')) {
+                currentCase.document.files.splice(idx, 1);
+                if (currentCase.document.files.length === 0) {
+                    currentCase.document.uploaded = false;
+                }
+                saveCase();
+                showStep('document');
+            }
+        }
+        
+        // AI 분석 (Mock)
+        function analyzeDocument() {
+            const loading = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>AI가 공문을 분석하고 있습니다...</p>
+                </div>
+            `;
+            document.getElementById('contentArea').insertAdjacentHTML('beforeend', loading);
+            
+            setTimeout(() => {
+                currentCase.document.aiAnalysis = {
+                    analyzed: true,
+                    timestamp: new Date().toISOString(),
+                    urgencyScore: 8,
+                    estimatedCauses: ['방수층 균열', '드레인 불량']
+                };
+                saveCase();
+                showStep('document');
+            }, 2000);
+        }
+        
+        // 기본정보 저장
+        function saveBasicInfo(event) {
+            event.preventDefault();
+            
+            currentCase.basicInfo.siteName = document.getElementById('siteName').value;
+            currentCase.basicInfo.siteOverview = document.getElementById('siteOverview').value;
+            currentCase.basicInfo.buildingType = document.getElementById('buildingType').value;
+            currentCase.basicInfo.location = document.getElementById('location').value;
+            currentCase.basicInfo.address = document.getElementById('address').value;
+            currentCase.basicInfo.customerName = document.getElementById('customerName').value;
+            currentCase.basicInfo.phone = document.getElementById('phone').value;
+            currentCase.basicInfo.symptoms = document.getElementById('symptoms').value;
+            
+            saveCase();
+            updateUI();
+            showStep('urgency');
+        }
+        
+        // 긴급도 계산
+        function calculateUrgency() {
+            const checks = ['urgent1', 'urgent2', 'urgent3', 'urgent4', 'urgent5'];
+            const count = checks.filter(id => document.getElementById(id)?.checked).length;
+            
+            const resultDiv = document.getElementById('urgencyResult');
+            if (count === 0) {
+                resultDiv.innerHTML = '';
+                return;
+            }
+            
+            const level = count >= 2 ? '긴급' : '주의';
+            const boxClass = count >= 2 ? 'error-box' : 'warning-box';
+            const message = count >= 2 
+                ? '<strong>🚨 긴급 대응 필요</strong><br>2개 이상 해당 시 24시간 내 현장 방문을 권장합니다.'
+                : '<strong>⚠️ 주의 관찰</strong><br>일반 대응 일정으로 진행 가능하나, 지속 모니터링이 필요합니다.';
+            
+            resultDiv.innerHTML = `<div class="${boxClass}" style="margin-top: 20px;">${message}</div>`;
+            currentCase.urgency.level = level;
+        }
+        
+        // 긴급도 저장
+        function saveUrgency() {
+            const checks = ['urgent1', 'urgent2', 'urgent3', 'urgent4', 'urgent5'];
+            currentCase.urgency.checklist = {};
+            checks.forEach(id => {
+                currentCase.urgency.checklist[id] = document.getElementById(id)?.checked || false;
+            });
+            currentCase.urgency.leakTime = document.getElementById('leakTime').value;
+            currentCase.urgency.leakCondition = document.getElementById('leakCondition').value;
+            
+            saveCase();
+            alert('긴급도 판단이 저장되었습니다.\n\n이제 활동 기록을 추가하거나 시공 관리를 진행하실 수 있습니다.');
+        }
+        
+        // 활동 추가
+        function addActivity() {
+            const type = prompt('활동 유형을 선택하세요:\n1. 현장방문\n2. 회의\n3. 전화/이메일');
+            if (!type) return;
+            
+            let typeName = '';
+            if (type === '1') typeName = '현장방문';
+            else if (type === '2') typeName = '회의';
+            else if (type === '3') typeName = '전화/이메일';
+            else {
+                alert('올바른 번호를 입력하세요.');
+                return;
+            }
+            
+            const sequence = currentCase.activities.length + 1;
+            const activity = {
+                id: 'act_' + Date.now(),
+                sequence: sequence,
+                type: typeName,
+                title: `제${sequence}차 ${typeName}`,
+                date: new Date().toISOString(),
+                status: 'pending',
+                attendees: [],
+                photos: [],
+                minutes: {
+                    location: '',
+                    agenda: [],
+                    discussion: '',
+                    decisions: [],
+                    pending: [],
+                    actionItems: []
+                }
+            };
+            
+            currentCase.activities.push(activity);
+            saveCase();
+            updateUI();
+            alert(`${activity.title}이(가) 추가되었습니다.`);
+        }
+        
+        // 활동 보기
+        function viewActivity(idx) {
+            alert('활동 상세 기능은 개발 중입니다.');
+        }
+        
+        // 시공일지 추가
+        function addDailyLog() {
+            const day = currentCase.construction.dailyLogs.length + 1;
+            const log = {
+                id: 'daily_' + Date.now(),
+                day: day,
+                date: new Date().toISOString().split('T')[0],
+                weather: {
+                    condition: '맑음',
+                    temperature: 20,
+                    humidity: 50,
+                    suitable: true
+                },
+                workers: [],
+                equipment: [],
+                materials: [],
+                work: {
+                    process: '',
+                    details: '',
+                    progress: 0
+                },
+                photos: [],
+                issues: ''
+            };
+            
+            currentCase.construction.dailyLogs.push(log);
+            saveCase();
+            updateUI();
+            alert(`${day}일차 시공일지가 추가되었습니다.`);
+        }
+        
+        // 일지 보기
+        function viewDailyLog(idx) {
+            alert('시공일지 상세 기능은 개발 중입니다.');
+        }
+        
+        // 케이스 저장
+        function saveCase() {
+            if (!currentCase) return;
+            
+            currentCase.metadata.updatedAt = new Date().toISOString();
+            localStorage.setItem(`as_${currentCase.metadata.caseId}`, JSON.stringify(currentCase));
+            localStorage.setItem('currentCaseId', currentCase.metadata.caseId);
+            
+            // 자동 저장 표시 업데이트
+            const now = new Date();
+            document.getElementById('lastSaveTime').textContent = 
+                now.toLocaleTimeString('ko-KR');
+        }
+        
+        // 케이스 로드
+        function loadCase(caseId) {
+            const data = localStorage.getItem(`as_${caseId}`);
+            if (data) {
+                return JSON.parse(data);
+            }
+            return null;
+        }
+        
+        // AS 목록 표시
+        function showCaseList() {
+            const cases = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('as_AS')) {
+                    const caseData = JSON.parse(localStorage.getItem(key));
+                    cases.push(caseData);
+                }
+            }
+            
+            if (cases.length === 0) {
+                alert('저장된 AS가 없습니다.');
+                return;
+            }
+            
+            const list = cases.map(c => 
+                `${c.metadata.caseId} - ${c.basicInfo.siteName || '(현장명 없음)'} - ${c.metadata.status}`
+            ).join('\n');
+            
+            alert('저장된 AS 목록:\n\n' + list + '\n\n상세 목록 기능은 개발 중입니다.');
+        }
+        
+        // 데이터 내보내기
+        function exportData() {
+            if (!currentCase) {
+                alert('내보낼 데이터가 없습니다.');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(currentCase, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentCase.metadata.caseId}_backup.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('백업 파일이 다운로드되었습니다.\n\n구글드라이브나 AI드라이브에 업로드하여 보관하세요.');
+        }
+        
+        // 초기화 실행
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

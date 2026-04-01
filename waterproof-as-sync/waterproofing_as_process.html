@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방수명장 AS대응 프로세스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .chat-container {
+            display: flex;
+            height: 700px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+        }
+        
+        .stage {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .stage:hover {
+            background: #e9ecef;
+        }
+        
+        .stage.active {
+            background: #667eea;
+            color: white;
+            border-left: 5px solid #2a5298;
+        }
+        
+        .stage-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #2a5298;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .stage.active .stage-number {
+            background: white;
+            color: #667eea;
+        }
+        
+        .stage-title {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        
+        .stage-desc {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.bot {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .message.user {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .avatar.bot {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .avatar.user {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-right: 0;
+            margin-left: 10px;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+        
+        .message.bot .message-content {
+            background: #f0f2f5;
+            color: #333;
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option-btn {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .option-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.3);
+        }
+        
+        .checklist {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        
+        .checklist-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .checklist-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .warning-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            color: #721c24;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            color: #0c5460;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            color: #155724;
+        }
+        
+        .input-area {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        
+        .input-area input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-area button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .input-area button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-progress {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-urgent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 40px;
+            padding-bottom: 30px;
+            border-left: 2px solid #667eea;
+        }
+
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .timeline-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .timeline-time {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ 방수명장 AS대응 프로세스</h1>
+            <p>체계적인 방수 하자/누수 AS 접수부터 완료까지 전문 프로세스</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="sidebar">
+                <div class="stage active" data-stage="1">
+                    <span class="stage-number">1</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">초기 접수</div>
+                        <div class="stage-desc">고객 정보 및 증상 파악</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="2">
+                    <span class="stage-number">2</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">긴급도 판단</div>
+                        <div class="stage-desc">즉시 조치 필요 여부</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="3">
+                    <span class="stage-number">3</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">현장 사전조사</div>
+                        <div class="stage-desc">사진/도면/이력 확인</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="4">
+                    <span class="stage-number">4</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">원인 1차 분석</div>
+                        <div class="stage-desc">가능 원인 추정</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="5">
+                    <span class="stage-number">5</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">현장 방문 계획</div>
+                        <div class="stage-desc">일정/준비물 확정</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="6">
+                    <span class="stage-number">6</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">현장 조사</div>
+                        <div class="stage-desc">정밀 진단 수행</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="7">
+                    <span class="stage-number">7</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">원인 확정</div>
+                        <div class="stage-desc">진단 결과 보고</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="8">
+                    <span class="stage-number">8</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">보수 방안 제시</div>
+                        <div class="stage-desc">공법/견적 협의</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="9">
+                    <span class="stage-number">9</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">시공 계획</div>
+                        <div class="stage-desc">공정/일정 확정</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="10">
+                    <span class="stage-number">10</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">시공 및 관리</div>
+                        <div class="stage-desc">품질관리 수행</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="11">
+                    <span class="stage-number">11</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">완료 검사</div>
+                        <div class="stage-desc">인수인계</div>
+                    </div>
+                </div>
+                <div class="stage" data-stage="12">
+                    <span class="stage-number">12</span>
+                    <div style="display: inline-block;">
+                        <div class="stage-title">사후 관리</div>
+                        <div class="stage-desc">유지보수 안내</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-main">
+                <div class="messages" id="messages">
+                    <!-- 메시지가 여기에 동적으로 추가됩니다 -->
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="메시지를 입력하세요..." disabled>
+                    <button onclick="sendMessage()" disabled>전송</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStage = 1;
+        let asData = {
+            접수번호: null,
+            접수일시: null,
+            고객명: null,
+            연락처: null,
+            건물유형: null,
+            주소: null,
+            시공부위: null,
+            증상: null,
+            긴급도: null,
+            보증기간: null,
+            기존공법: null,
+            시공일자: null,
+            누수발생일: null,
+            현장사진: [],
+            추정원인: [],
+            확정원인: null,
+            보수방안: null,
+            견적금액: null,
+            시공일정: null,
+            담당자: null
+        };
+
+        const stages = {
+            1: initStage1,
+            2: initStage2,
+            3: initStage3,
+            4: initStage4,
+            5: initStage5,
+            6: initStage6,
+            7: initStage7,
+            8: initStage8,
+            9: initStage9,
+            10: initStage10,
+            11: initStage11,
+            12: initStage12
+        };
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initStage1();
+            
+            // 사이드바 스테이지 클릭 이벤트
+            document.querySelectorAll('.stage').forEach(stage => {
+                stage.addEventListener('click', function() {
+                    const stageNum = parseInt(this.getAttribute('data-stage'));
+                    if (stageNum <= currentStage) {
+                        goToStage(stageNum);
+                    } else {
+                        addBotMessage('이전 단계를 먼저 완료해주세요.');
+                    }
+                });
+            });
+        });
+
+        function addBotMessage(content) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div class="avatar bot">🔧</div>
+                <div class="message-content">${content}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addUserMessage(content) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="message-content">${content}</div>
+                <div class="avatar user">👤</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addFormMessage(formHtml) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.innerHTML = `
+                <div class="avatar bot">🔧</div>
+                <div class="message-content" style="max-width: 85%;">${formHtml}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function goToStage(stageNum) {
+            currentStage = stageNum;
+            document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+            document.querySelector(`.stage[data-stage="${stageNum}"]`).classList.add('active');
+            
+            if (stages[stageNum]) {
+                stages[stageNum]();
+            }
+        }
+
+        // 1단계: 초기 접수
+        function initStage1() {
+            addBotMessage(`
+                <strong>🏗️ 방수 AS 접수를 시작합니다</strong><br><br>
+                안녕하세요, 방수명장 AS 담당자입니다.<br>
+                체계적인 하자 처리를 위해 순서대로 정보를 수집하겠습니다.<br><br>
+                <div class="info-box">
+                    <strong>📋 1단계: 초기 접수 정보</strong><br>
+                    고객 기본정보와 현장 증상을 파악합니다.
+                </div>
+            `);
+
+            const formHtml = `
+                <form id="stage1Form" onsubmit="submitStage1(event)">
+                    <div class="form-group">
+                        <label>🏢 건물 유형 *</label>
+                        <select id="buildingType" required>
+                            <option value="">선택하세요</option>
+                            <option value="아파트">아파트</option>
+                            <option value="주택">단독/다가구 주택</option>
+                            <option value="오피스텔">오피스텔</option>
+                            <option value="상가">상가/근린생활시설</option>
+                            <option value="빌딩">업무용 빌딩</option>
+                            <option value="공장">공장/창고</option>
+                            <option value="학교">학교/교육시설</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📍 시공 부위 *</label>
+                        <select id="location" required>
+                            <option value="">선택하세요</option>
+                            <option value="옥상">옥상</option>
+                            <option value="욕실">욕실/화장실</option>
+                            <option value="발코니">발코니/베란다</option>
+                            <option value="외벽">외벽</option>
+                            <option value="지하실">지하실</option>
+                            <option value="지하주차장">지하주차장</option>
+                            <option value="물탱크">물탱크</option>
+                            <option value="테라스">테라스/옥상정원</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>💧 주요 증상 *</label>
+                        <textarea id="symptoms" placeholder="예시: 천장에서 물이 떨어짐, 벽면에 곰팡이, 바닥이 축축함 등 구체적으로 작성해주세요" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👤 고객명</label>
+                        <input type="text" id="customerName" placeholder="홍길동">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📞 연락처</label>
+                        <input type="tel" id="phone" placeholder="010-1234-5678">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🏠 주소</label>
+                        <input type="text" id="address" placeholder="서울시 강남구...">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">다음 단계로 →</button>
+                </form>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage1(event) {
+            event.preventDefault();
+            
+            asData.접수번호 = 'AS' + new Date().getTime();
+            asData.접수일시 = new Date().toLocaleString('ko-KR');
+            asData.건물유형 = document.getElementById('buildingType').value;
+            asData.시공부위 = document.getElementById('location').value;
+            asData.증상 = document.getElementById('symptoms').value;
+            asData.고객명 = document.getElementById('customerName').value || '미입력';
+            asData.연락처 = document.getElementById('phone').value || '미입력';
+            asData.주소 = document.getElementById('address').value || '미입력';
+            
+            addUserMessage(`
+                <strong>접수 정보 제출</strong><br>
+                건물: ${asData.건물유형} / 부위: ${asData.시공부위}<br>
+                증상: ${asData.증상.substring(0, 50)}...
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 접수 완료</strong><br>
+                    접수번호: <strong>${asData.접수번호}</strong><br>
+                    접수일시: ${asData.접수일시}
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(2);
+            }, 1000);
+        }
+
+        // 2단계: 긴급도 판단
+        function initStage2() {
+            addBotMessage(`
+                <strong>⚡ 2단계: 긴급도 판단</strong><br><br>
+                다음 항목을 체크하여 긴급 조치 필요 여부를 판단합니다.
+            `);
+
+            const formHtml = `
+                <div class="checklist">
+                    <div class="checklist-title">🚨 긴급 상황 체크리스트</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="urgent1" onchange="checkUrgency()">
+                        <label for="urgent1">현재 누수가 진행 중이다 (물이 계속 떨어지거나 흐른다)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="urgent2" onchange="checkUrgency()">
+                        <label for="urgent2">누수로 인해 전기 위험이 있다</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="urgent3" onchange="checkUrgency()">
+                        <label for="urgent3">층간 누수가 발생하여 이웃 민원이 있다</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="urgent4" onchange="checkUrgency()">
+                        <label for="urgent4">물이 고여 있어 2차 피해 우려가 있다</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="urgent5" onchange="checkUrgency()">
+                        <label for="urgent5">구조물 안전에 영향을 줄 수 있다</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 누수 발생 시점</label>
+                    <select id="leakTime">
+                        <option value="1일이내">1일 이내</option>
+                        <option value="3일이내">2-3일 전</option>
+                        <option value="1주일이내">1주일 이내</option>
+                        <option value="1개월이내">1개월 이내</option>
+                        <option value="1개월이상">1개월 이상</option>
+                        <option value="간헐적">간헐적 발생</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>🌧️ 누수 발생 조건</label>
+                    <select id="leakCondition">
+                        <option value="항상">항상 발생</option>
+                        <option value="우천시">비 올 때만</option>
+                        <option value="대우천시">폭우 시에만</option>
+                        <option value="물사용시">물 사용 시</option>
+                        <option value="야간">야간/새벽에</option>
+                        <option value="불규칙">불규칙</option>
+                    </select>
+                </div>
+                
+                <button onclick="submitStage2()" class="submit-btn">긴급도 판단 완료 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function checkUrgency() {
+            const checks = ['urgent1', 'urgent2', 'urgent3', 'urgent4', 'urgent5'];
+            const checkedCount = checks.filter(id => document.getElementById(id)?.checked).length;
+            
+            if (checkedCount > 0) {
+                const urgencyDiv = document.getElementById('urgencyResult');
+                if (urgencyDiv) urgencyDiv.remove();
+                
+                const result = document.createElement('div');
+                result.id = 'urgencyResult';
+                result.className = checkedCount >= 2 ? 'warning-box' : 'info-box';
+                result.innerHTML = checkedCount >= 2 
+                    ? '<strong>🚨 긴급 대응 필요</strong><br>2개 이상 해당 시 24시간 내 현장 방문을 권장합니다.'
+                    : '<strong>⚠️ 주의 관찰</strong><br>일반 대응 일정으로 진행 가능하나, 지속 모니터링이 필요합니다.';
+                
+                document.querySelector('#messages .message:last-child .message-content').appendChild(result);
+            }
+        }
+
+        function submitStage2() {
+            const checks = ['urgent1', 'urgent2', 'urgent3', 'urgent4', 'urgent5'];
+            const checkedCount = checks.filter(id => document.getElementById(id)?.checked).length;
+            
+            asData.긴급도 = checkedCount >= 2 ? '긴급' : checkedCount >= 1 ? '주의' : '일반';
+            asData.누수발생일 = document.getElementById('leakTime')?.value || '미입력';
+            const leakCondition = document.getElementById('leakCondition')?.value || '미입력';
+            
+            addUserMessage(`
+                <strong>긴급도 판단 완료</strong><br>
+                긴급도: <span class="status-badge ${asData.긴급도 === '긴급' ? 'status-urgent' : 'status-progress'}">${asData.긴급도}</span><br>
+                발생시점: ${asData.누수발생일} / 조건: ${leakCondition}
+            `);
+            
+            if (asData.긴급도 === '긴급') {
+                addBotMessage(`
+                    <div class="warning-box">
+                        <strong>🚨 긴급 대응 필요</strong><br>
+                        24시간 내 현장 방문을 권장합니다.<br>
+                        가능한 빠른 시일 내에 담당자가 연락드리겠습니다.
+                    </div>
+                `);
+            }
+            
+            setTimeout(() => {
+                goToStage(3);
+            }, 1000);
+        }
+
+        // 3단계: 현장 사전조사
+        function initStage3() {
+            addBotMessage(`
+                <strong>📸 3단계: 현장 사전조사</strong><br><br>
+                효율적인 현장 방문을 위해 사전 자료를 수집합니다.
+            `);
+
+            const formHtml = `
+                <div class="info-box">
+                    <strong>필요 자료</strong><br>
+                    • 누수 부위 사진 (가까이/멀리 각도)<br>
+                    • 해당 부위 전체 사진<br>
+                    • 기존 방수 시공 내역 (있는 경우)<br>
+                    • 도면 또는 설계도 (있는 경우)
+                </div>
+                
+                <div class="form-group">
+                    <label>📷 현장 사진 업로드</label>
+                    <input type="file" id="photos" multiple accept="image/*">
+                    <small style="color: #666;">※ 여러 장 선택 가능합니다</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>📄 기존 방수 공법</label>
+                    <select id="existingMethod">
+                        <option value="모름">모름/확인불가</option>
+                        <option value="우레탄">우레탄 도막방수</option>
+                        <option value="시트">시트방수</option>
+                        <option value="아스팔트">아스팔트계 방수</option>
+                        <option value="시멘트">시멘트계 방수</option>
+                        <option value="침투성">침투성 방수</option>
+                        <option value="복합">복합방수</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 기존 시공 시기</label>
+                    <input type="text" id="constructionDate" placeholder="예: 2020년 5월 / 3년 전 / 모름">
+                </div>
+                
+                <div class="form-group">
+                    <label>🔧 과거 보수 이력</label>
+                    <select id="repairHistory">
+                        <option value="없음">없음</option>
+                        <option value="부분보수">부분 보수 있음</option>
+                        <option value="전면보수">전면 재시공 있음</option>
+                        <option value="여러차례">여러 차례 보수함</option>
+                        <option value="모름">모름</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>⚠️ 특이사항</label>
+                    <textarea id="specialNotes" placeholder="• 접근이 어려운 부위인지&#10;• 공사 시 제약사항 (영업 중, 거주 중 등)&#10;• 이전 보수 실패 이력&#10;• 기타 특이사항"></textarea>
+                </div>
+                
+                <button onclick="submitStage3()" class="submit-btn">사전조사 완료 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage3() {
+            const photos = document.getElementById('photos')?.files.length || 0;
+            asData.기존공법 = document.getElementById('existingMethod')?.value || '모름';
+            asData.시공일자 = document.getElementById('constructionDate')?.value || '모름';
+            const repairHistory = document.getElementById('repairHistory')?.value || '없음';
+            const specialNotes = document.getElementById('specialNotes')?.value || '없음';
+            
+            addUserMessage(`
+                <strong>사전조사 자료 제출</strong><br>
+                사진: ${photos}장 / 기존공법: ${asData.기존공법}<br>
+                보수이력: ${repairHistory}
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 사전조사 완료</strong><br>
+                    수집된 자료를 바탕으로 1차 원인 분석을 진행하겠습니다.
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(4);
+            }, 1000);
+        }
+
+        // 4단계: 원인 1차 분석
+        function initStage4() {
+            addBotMessage(`
+                <strong>🔍 4단계: 원인 1차 분석</strong><br><br>
+                수집된 정보를 바탕으로 가능한 누수 원인을 추정합니다.
+            `);
+
+            // 간단한 원인 추정 로직
+            let possibleCauses = [];
+            
+            if (asData.시공부위.includes('옥상')) {
+                possibleCauses.push(
+                    '방수층 균열 또는 노화',
+                    '드레인(배수구) 막힘 또는 파손',
+                    '파라펫 줄눈 불량',
+                    '방수층 들뜸/박리'
+                );
+            } else if (asData.시공부위.includes('욕실')) {
+                possibleCauses.push(
+                    '타일 줄눈 불량',
+                    '배관 연결부 누수',
+                    '방수층 미시공 또는 불량',
+                    '코너/벽체 접합부 문제'
+                );
+            } else if (asData.시공부위.includes('외벽')) {
+                possibleCauses.push(
+                    '외벽 균열',
+                    '창호 주변 실링 불량',
+                    '벽체 조인트 파손',
+                    '타일 줄눈 불량'
+                );
+            } else if (asData.시공부위.includes('지하')) {
+                possibleCauses.push(
+                    '지하수위 상승에 의한 누수',
+                    '벽체 균열',
+                    '시공 이음부 불량',
+                    '방수층 손상'
+                );
+            } else {
+                possibleCauses.push(
+                    '방수층 노화 또는 손상',
+                    '시공 불량',
+                    '구조적 균열',
+                    '배수 불량'
+                );
+            }
+
+            const analysisHtml = `
+                <div class="warning-box">
+                    <strong>⚠️ 주의</strong><br>
+                    아래는 사전 정보를 바탕으로 한 <strong>추정</strong>입니다.<br>
+                    정확한 원인은 현장 조사 후 확정됩니다.
+                </div>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>추정 원인</th>
+                                <th>가능성</th>
+                                <th>확인 방법</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>${possibleCauses[0]}</td>
+                                <td><span class="status-badge status-urgent">높음</span></td>
+                                <td>육안검사, 살수시험</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>${possibleCauses[1]}</td>
+                                <td><span class="status-badge status-progress">중간</span></td>
+                                <td>육안검사, 부위별 점검</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>${possibleCauses[2]}</td>
+                                <td><span class="status-badge status-progress">중간</span></td>
+                                <td>정밀진단 필요</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>${possibleCauses[3]}</td>
+                                <td><span class="status-badge status-pending">낮음</span></td>
+                                <td>추가 조사 필요</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📋 현장 조사 시 확인할 사항</strong><br>
+                    ✓ ${possibleCauses[0]} 관련 상세 점검<br>
+                    ✓ 주변부 연관 부위 확인<br>
+                    ✓ 필요 시 살수 시험 또는 함수율 측정<br>
+                    ✓ 사진 및 동영상 기록
+                </div>
+                
+                <button onclick="submitStage4()" class="submit-btn">다음 단계로 →</button>
+            `;
+            
+            asData.추정원인 = possibleCauses;
+            addFormMessage(analysisHtml);
+        }
+
+        function submitStage4() {
+            addUserMessage('1차 원인 분석 확인 완료');
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 1차 분석 완료</strong><br>
+                    추정 원인이 정리되었습니다.<br>
+                    다음 단계에서 현장 방문 일정을 잡겠습니다.
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(5);
+            }, 1000);
+        }
+
+        // 5단계: 현장 방문 계획
+        function initStage5() {
+            addBotMessage(`
+                <strong>📅 5단계: 현장 방문 계획</strong><br><br>
+                효율적인 현장 조사를 위해 일정과 준비사항을 확정합니다.
+            `);
+
+            const formHtml = `
+                <div class="form-group">
+                    <label>📅 희망 방문 일자</label>
+                    <input type="date" id="visitDate" min="${new Date().toISOString().split('T')[0]}">
+                </div>
+                
+                <div class="form-group">
+                    <label>🕐 희망 방문 시간</label>
+                    <select id="visitTime">
+                        <option value="09:00-12:00">오전 (09:00~12:00)</option>
+                        <option value="12:00-15:00">오후 초반 (12:00~15:00)</option>
+                        <option value="15:00-18:00">오후 후반 (15:00~18:00)</option>
+                        <option value="협의">협의 필요</option>
+                    </select>
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">🔧 현장 조사 준비물</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tool1" checked disabled>
+                        <label>카메라 / 측정 장비</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tool2" checked disabled>
+                        <label>안전장비 (안전모, 안전화 등)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tool3">
+                        <label>함수율 측정기 (필요 시)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tool4">
+                        <label>살수 시험 장비 (필요 시)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="tool5">
+                        <label>사다리 / 고소작업 장비</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>🚗 현장 접근성</label>
+                    <select id="accessibility">
+                        <option value="양호">주차 및 접근 양호</option>
+                        <option value="보통">일반 접근 가능</option>
+                        <option value="어려움">접근 어려움 (사전 협의 필요)</option>
+                        <option value="고소작업">고소작업 필요</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>👥 현장 입회자</label>
+                    <input type="text" id="attendees" placeholder="예: 건물주, 관리소장, 시공업체 등">
+                </div>
+                
+                <button onclick="submitStage5()" class="submit-btn">방문 일정 확정 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage5() {
+            const visitDate = document.getElementById('visitDate')?.value || '미정';
+            const visitTime = document.getElementById('visitTime')?.value || '협의';
+            const accessibility = document.getElementById('accessibility')?.value || '보통';
+            
+            asData.방문일정 = `${visitDate} ${visitTime}`;
+            
+            addUserMessage(`
+                <strong>방문 일정 확정</strong><br>
+                일자: ${visitDate}<br>
+                시간: ${visitTime}<br>
+                접근성: ${accessibility}
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 방문 일정 확정</strong><br>
+                    ${visitDate} ${visitTime}에 현장 방문 예정입니다.<br>
+                    담당자가 사전에 연락드리겠습니다.
+                </div>
+                
+                <div class="info-box">
+                    <strong>📞 방문 전 안내</strong><br>
+                    • 방문 전날 최종 확인 연락을 드립니다<br>
+                    • 현장 접근이 가능하도록 준비해주세요<br>
+                    • 누수 부위 접근이 가능하도록 정리 부탁드립니다<br>
+                    • 문의사항은 언제든 연락 주세요
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(6);
+            }, 1500);
+        }
+
+        // 6단계: 현장 조사
+        function initStage6() {
+            addBotMessage(`
+                <strong>🔍 6단계: 현장 정밀 조사</strong><br><br>
+                현장 방문하여 정밀 진단을 수행합니다.
+            `);
+
+            const formHtml = `
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">1. 현장 도착 및 안전 확인</div>
+                            <div class="timeline-time">작업 전 안전장비 착용 및 위험요소 확인</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">2. 증상 부위 육안 검사</div>
+                            <div class="timeline-time">누수 위치, 범위, 상태 확인 및 사진 촬영</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">3. 주변부 및 연관 부위 점검</div>
+                            <div class="timeline-time">배수구, 줄눈, 균열, 조인트 등 취약부 확인</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">4. 정밀 진단 (필요 시)</div>
+                            <div class="timeline-time">함수율 측정, 살수 시험, 적외선 조사 등</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">5. 원인 분석 및 기록</div>
+                            <div class="timeline-time">종합 판단 및 상세 사진/동영상 기록</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">✅ 현장 조사 체크리스트</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check1">
+                        <label>누수 부위 정확한 위치 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check2">
+                        <label>누수 범위 및 피해 정도 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check3">
+                        <label>방수층 상태 점검 (균열, 들뜸, 박리)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check4">
+                        <label>배수 상태 점검</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check5">
+                        <label>구조물 상태 확인 (균열, 침하 등)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check6">
+                        <label>주변부 취약 부위 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check7">
+                        <label>사진/동영상 기록 완료</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check8">
+                        <label>필요 시 정밀 시험 수행</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 현장 조사 소견</label>
+                    <textarea id="inspectionNotes" placeholder="현장에서 확인한 상태, 특이사항, 추가 발견 사항 등을 상세히 기록"></textarea>
+                </div>
+                
+                <button onclick="submitStage6()" class="submit-btn">현장 조사 완료 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage6() {
+            const inspectionNotes = document.getElementById('inspectionNotes')?.value || '미입력';
+            
+            addUserMessage(`
+                <strong>현장 조사 완료</strong><br>
+                체크리스트 확인 및 조사 소견 기록 완료
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 현장 정밀 조사 완료</strong><br>
+                    수집된 정보를 바탕으로 원인을 확정하고<br>
+                    진단 보고서를 작성하겠습니다.
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(7);
+            }, 1000);
+        }
+
+        // 7단계: 원인 확정
+        function initStage7() {
+            addBotMessage(`
+                <strong>📊 7단계: 원인 확정 및 진단 보고</strong><br><br>
+                현장 조사 결과를 바탕으로 누수 원인을 확정합니다.
+            `);
+
+            const formHtml = `
+                <div class="form-group">
+                    <label>🎯 확정된 누수 원인</label>
+                    <select id="confirmedCause">
+                        <option value="">선택하세요</option>
+                        ${asData.추정원인.map(cause => `<option value="${cause}">${cause}</option>`).join('')}
+                        <option value="기타">기타 (직접 입력)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📋 상세 원인 설명</label>
+                    <textarea id="causeDetail" placeholder="• 정확한 누수 원인&#10;• 발생 메커니즘&#10;• 피해 범위&#10;• 2차 피해 가능성"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>⚖️ 책임 소재 (초기 판단)</label>
+                    <select id="responsibility">
+                        <option value="시공불량">시공 불량</option>
+                        <option value="재료불량">재료 불량</option>
+                        <option value="설계문제">설계 문제</option>
+                        <option value="유지관리">유지관리 소홀</option>
+                        <option value="경년열화">경년 열화 (자연 노화)</option>
+                        <option value="외부요인">외부 요인</option>
+                        <option value="복합">복합 요인</option>
+                        <option value="추가조사">추가 조사 필요</option>
+                    </select>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ 책임소재 판단 시 주의사항</strong><br>
+                    • 보증기간 확인 필요<br>
+                    • 계약서 및 하자보수 조항 검토<br>
+                    • 필요 시 법률 자문 권장<br>
+                    • 증빙 자료 충분히 확보
+                </div>
+                
+                <div class="form-group">
+                    <label>🔍 추가 조사 필요 사항</label>
+                    <textarea id="additionalInspection" placeholder="• 파괴조사 필요 여부&#10;• 전문가 검토 필요 분야&#10;• 추가 시험 필요 항목"></textarea>
+                </div>
+                
+                <button onclick="submitStage7()" class="submit-btn">원인 확정 완료 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage7() {
+            asData.확정원인 = document.getElementById('confirmedCause')?.value || '미확정';
+            const causeDetail = document.getElementById('causeDetail')?.value || '미입력';
+            const responsibility = document.getElementById('responsibility')?.value || '미정';
+            
+            addUserMessage(`
+                <strong>원인 확정</strong><br>
+                누수원인: ${asData.확정원인}<br>
+                책임소재: ${responsibility}
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 진단 완료</strong><br>
+                    누수 원인이 확정되었습니다.<br><br>
+                    <strong>확정 원인:</strong> ${asData.확정원인}<br>
+                    <strong>책임 소재:</strong> ${responsibility}
+                </div>
+                
+                <div class="info-box">
+                    <strong>📄 다음 단계</strong><br>
+                    확정된 원인을 바탕으로 최적의 보수 방안을 제시하겠습니다.
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(8);
+            }, 1000);
+        }
+
+        // 8단계: 보수 방안 제시
+        function initStage8() {
+            addBotMessage(`
+                <strong>🔧 8단계: 보수 방안 제시</strong><br><br>
+                확정된 원인에 따른 최적의 보수 공법을 제안합니다.
+            `);
+
+            const formHtml = `
+                <div class="info-box">
+                    <strong>💡 공법 선정 원칙</strong><br>
+                    • 원인에 대한 근본적 해결<br>
+                    • 내구성과 경제성의 균형<br>
+                    • 현장 시공 조건 고려<br>
+                    • 하자 재발 방지
+                </div>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>구분</th>
+                                <th>공법</th>
+                                <th>특징</th>
+                                <th>내구연한</th>
+                                <th>예상비용</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #e8f5e9;">
+                                <td><strong>권장안</strong></td>
+                                <td>우레탄 도막방수 (전면 재시공)</td>
+                                <td>방수층 완전 교체, 근본 해결</td>
+                                <td>10~15년</td>
+                                <td>⭐⭐⭐</td>
+                            </tr>
+                            <tr>
+                                <td>대안 1</td>
+                                <td>복합방수 (시트+도막)</td>
+                                <td>고내구성, 중요 부위 적용</td>
+                                <td>15~20년</td>
+                                <td>⭐⭐⭐⭐</td>
+                            </tr>
+                            <tr>
+                                <td>대안 2</td>
+                                <td>부분 보수 (균열/취약부)</td>
+                                <td>비용 절감, 단기 대응</td>
+                                <td>3~5년</td>
+                                <td>⭐</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-group">
+                    <label>🎯 선택한 보수 방안</label>
+                    <select id="selectedMethod">
+                        <option value="권장안">권장안 - 우레탄 도막방수 전면 재시공</option>
+                        <option value="대안1">대안1 - 복합방수</option>
+                        <option value="대안2">대안2 - 부분 보수</option>
+                        <option value="협의">협의 필요</option>
+                    </select>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ 부분 보수 선택 시 주의</strong><br>
+                    • 근본 해결이 아닌 임시 조치<br>
+                    • 3~5년 내 전면 재시공 필요 가능성<br>
+                    • 하자 재발 시 책임 범위 명확히 해야 함
+                </div>
+                
+                <div class="form-group">
+                    <label>💰 예상 견적</label>
+                    <input type="text" id="estimatedCost" placeholder="예: 300만원 ~ 500만원 (정밀견적 별도)">
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 예상 공기</label>
+                    <select id="expectedDuration">
+                        <option value="1~2일">1~2일</option>
+                        <option value="3~5일">3~5일</option>
+                        <option value="1주일">1주일</option>
+                        <option value="2주일">2주일</option>
+                        <option value="1개월">1개월</option>
+                        <option value="협의">협의 필요</option>
+                    </select>
+                </div>
+                
+                <button onclick="submitStage8()" class="submit-btn">보수 방안 확정 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage8() {
+            asData.보수방안 = document.getElementById('selectedMethod')?.value || '미정';
+            asData.견적금액 = document.getElementById('estimatedCost')?.value || '미정';
+            const duration = document.getElementById('expectedDuration')?.value || '미정';
+            
+            addUserMessage(`
+                <strong>보수 방안 선택</strong><br>
+                공법: ${asData.보수방안}<br>
+                예상비용: ${asData.견적금액}<br>
+                예상기간: ${duration}
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 보수 방안 확정</strong><br>
+                    선택하신 공법으로 상세 시공계획을 수립하겠습니다.
+                </div>
+                
+                <div class="info-box">
+                    <strong>📋 다음 단계</strong><br>
+                    • 상세 견적서 작성<br>
+                    • 시공 계획서 작성<br>
+                    • 계약서 검토<br>
+                    • 시공 일정 협의
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(9);
+            }, 1000);
+        }
+
+        // 9단계: 시공 계획
+        function initStage9() {
+            addBotMessage(`
+                <strong>📋 9단계: 시공 계획 수립</strong><br><br>
+                구체적인 시공 일정과 품질관리 계획을 수립합니다.
+            `);
+
+            const formHtml = `
+                <div class="form-group">
+                    <label>📅 시공 시작일</label>
+                    <input type="date" id="constructionStart" min="${new Date().toISOString().split('T')[0]}">
+                </div>
+                
+                <div class="form-group">
+                    <label>📅 시공 완료 예정일</label>
+                    <input type="date" id="constructionEnd">
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">🔧 시공 전 준비사항</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep1">
+                        <label>재료 발주 완료</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep2">
+                        <label>현장 안전 조치 계획</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep3">
+                        <label>주변 양생 및 보양 계획</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep4">
+                        <label>작업자 투입 계획</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep5">
+                        <label>장비/공구 준비</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="prep6">
+                        <label>민원 대응 계획 (필요 시)</label>
+                    </div>
+                </div>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">1일차: 바탕면 처리</div>
+                            <div class="timeline-time">기존 방수층 철거, 청소, 균열 보수</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">2일차: 프라이머 및 1차 도포</div>
+                            <div class="timeline-time">프라이머 도포, 보강포 시공, 1차 방수층</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">3일차: 2~3차 도포</div>
+                            <div class="timeline-time">중도/상도 시공, 두께 확보</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">4일차: 마감 및 양생</div>
+                            <div class="timeline-time">마감 처리, 최종 양생</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">5일차: 검사 및 인수</div>
+                            <div class="timeline-time">품질검사, 인수인계</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>👷 시공 책임자</label>
+                    <input type="text" id="supervisor" placeholder="현장 소장 / 책임 기술자">
+                </div>
+                
+                <div class="form-group">
+                    <label>☎️ 긴급 연락망</label>
+                    <input type="tel" id="emergencyContact" placeholder="010-XXXX-XXXX">
+                </div>
+                
+                <button onclick="submitStage9()" class="submit-btn">시공 계획 확정 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage9() {
+            const startDate = document.getElementById('constructionStart')?.value || '미정';
+            const endDate = document.getElementById('constructionEnd')?.value || '미정';
+            asData.시공일정 = `${startDate} ~ ${endDate}`;
+            asData.담당자 = document.getElementById('supervisor')?.value || '미정';
+            
+            addUserMessage(`
+                <strong>시공 계획 확정</strong><br>
+                시공기간: ${asData.시공일정}<br>
+                책임자: ${asData.담당자}
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 시공 계획 수립 완료</strong><br>
+                    ${startDate}부터 시공을 시작합니다.<br>
+                    계획에 따라 품질관리를 철저히 하겠습니다.
+                </div>
+                
+                <div class="info-box">
+                    <strong>📞 시공 중 안내</strong><br>
+                    • 일일 진행 상황 보고<br>
+                    • 주요 공정 사진 기록<br>
+                    • 돌발 상황 즉시 보고<br>
+                    • 품질 이슈 즉시 협의
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(10);
+            }, 1000);
+        }
+
+        // 10단계: 시공 및 관리
+        function initStage10() {
+            addBotMessage(`
+                <strong>🔨 10단계: 시공 수행 및 품질관리</strong><br><br>
+                계획에 따라 시공을 진행하고 품질을 관리합니다.
+            `);
+
+            const formHtml = `
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%"></div>
+                </div>
+                <div style="text-align: center; margin: 10px 0; color: #666;">
+                    현재 진행률: 60% (3일차 / 5일 공정)
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">✅ 공정별 품질 체크</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality1" checked disabled>
+                        <label>바탕면 처리 완료 및 검사</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality2" checked disabled>
+                        <label>균열 보수 완료</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality3" checked disabled>
+                        <label>프라이머 도포 및 양생</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality4" checked disabled>
+                        <label>1차 방수층 시공 및 두께 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality5">
+                        <label>2차 방수층 시공 (진행 중)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality6">
+                        <label>3차 방수층 시공 (예정)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality7">
+                        <label>마감 처리 (예정)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="quality8">
+                        <label>최종 양생 및 검사 (예정)</label>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📸 오늘의 작업 기록</strong><br>
+                    <strong>일자:</strong> 2026-04-01 (3일차)<br>
+                    <strong>작업내용:</strong> 2차 방수층 도포 진행 중<br>
+                    <strong>날씨:</strong> 맑음 / 기온 18°C / 습도 55%<br>
+                    <strong>특이사항:</strong> 양호한 시공 환경, 순조롭게 진행 중
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ 품질관리 중점사항</strong><br>
+                    • 층간 건조시간 준수 (최소 4시간)<br>
+                    • 도막 두께 균일하게 확보<br>
+                    • 코너/드레인/파이프 관통부 재확인<br>
+                    • 날씨 변화 수시 체크
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 당일 작업 일지</label>
+                    <textarea id="dailyLog" placeholder="• 수행 작업 내역&#10;• 투입 인원 및 장비&#10;• 자재 사용량&#10;• 특이사항 및 문제점&#10;• 다음 작업 계획"></textarea>
+                </div>
+                
+                <button onclick="submitStage10()" class="submit-btn">작업 완료 보고 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage10() {
+            const dailyLog = document.getElementById('dailyLog')?.value || '미입력';
+            
+            addUserMessage('금일 작업 완료 및 품질 체크 완료');
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 작업 진행 양호</strong><br>
+                    계획대로 시공이 진행되고 있습니다.<br>
+                    내일 최종 마감 및 양생 후 검사 예정입니다.
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(11);
+            }, 1000);
+        }
+
+        // 11단계: 완료 검사
+        function initStage11() {
+            addBotMessage(`
+                <strong>🎯 11단계: 시공 완료 검사</strong><br><br>
+                시공이 완료되었습니다. 최종 품질 검사를 진행합니다.
+            `);
+
+            const formHtml = `
+                <div class="success-box">
+                    <strong>🎉 시공 완료</strong><br>
+                    예정대로 모든 공정이 완료되었습니다.<br>
+                    최종 검사 및 인수인계를 진행합니다.
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">✅ 최종 품질 검사 항목</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final1">
+                        <label>방수층 두께 확인 (규정 두께 충족)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final2">
+                        <label>표면 균일성 검사 (기포, 핀홀, 들뜸 없음)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final3">
+                        <label>코너/드레인 보강 상태 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final4">
+                        <label>줄눈/조인트 처리 상태 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final5">
+                        <label>파이프 관통부 실링 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final6">
+                        <label>배수 경사 및 드레인 동작 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final7">
+                        <label>살수 시험 (필요 시)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="final8">
+                        <label>청소 및 주변 정리 완료</label>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>📋 시공 완료 보고서</strong><br>
+                    <strong>시공 공법:</strong> ${asData.보수방안}<br>
+                    <strong>시공 기간:</strong> ${asData.시공일정}<br>
+                    <strong>시공 면적:</strong> (기록 필요)<br>
+                    <strong>사용 재료:</strong> (기록 필요)<br>
+                    <strong>품질 검사:</strong> 합격<br>
+                    <strong>하자보수 기간:</strong> 준공일로부터 OO년
+                </div>
+                
+                <div class="form-group">
+                    <label>📸 완공 사진 첨부</label>
+                    <input type="file" id="completionPhotos" multiple accept="image/*">
+                    <small style="color: #666;">※ 전체 사진, 세부 사진, before/after 비교 사진</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 최종 검사 의견</label>
+                    <textarea id="inspectionOpinion" placeholder="• 시공 품질 총평&#10;• 특기사항&#10;• 인수자 확인 사항&#10;• 유지관리 권고사항"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>✍️ 인수자 성명</label>
+                    <input type="text" id="acceptorName" placeholder="인수 확인자 성명">
+                </div>
+                
+                <button onclick="submitStage11()" class="submit-btn">인수인계 완료 →</button>
+            `;
+            addFormMessage(formHtml);
+        }
+
+        function submitStage11() {
+            const acceptor = document.getElementById('acceptorName')?.value || '미입력';
+            const opinion = document.getElementById('inspectionOpinion')?.value || '미입력';
+            
+            addUserMessage(`
+                <strong>인수인계 완료</strong><br>
+                인수자: ${acceptor}<br>
+                검사결과: 합격
+            `);
+            
+            addBotMessage(`
+                <div class="success-box">
+                    <strong>✅ 시공 완료 및 인수인계 완료</strong><br>
+                    품질 검사를 통과하였으며,<br>
+                    정상적으로 인수인계가 완료되었습니다.
+                </div>
+                
+                <div class="info-box">
+                    <strong>📄 제공 문서</strong><br>
+                    • 시공 완료 보고서<br>
+                    • 품질 검사 성적서<br>
+                    • 사용 재료 명세서<br>
+                    • 하자보수 보증서<br>
+                    • 유지관리 매뉴얼
+                </div>
+            `);
+            
+            setTimeout(() => {
+                goToStage(12);
+            }, 1000);
+        }
+
+        // 12단계: 사후 관리
+        function initStage12() {
+            addBotMessage(`
+                <strong>🔧 12단계: 사후 관리 및 유지보수 안내</strong><br><br>
+                시공 후 관리 방법과 정기 점검 계획을 안내드립니다.
+            `);
+
+            const formHtml = `
+                <div class="success-box">
+                    <strong>🎊 방수 AS 프로세스 완료</strong><br>
+                    접수번호: ${asData.접수번호}<br>
+                    접수일: ${asData.접수일시}<br>
+                    완료일: ${new Date().toLocaleString('ko-KR')}
+                </div>
+                
+                <div class="info-box">
+                    <strong>📅 정기 점검 일정</strong><br>
+                    • <strong>1개월 후:</strong> 1차 정기 점검 (무상)<br>
+                    • <strong>3개월 후:</strong> 2차 정기 점검 (무상)<br>
+                    • <strong>6개월 후:</strong> 3차 정기 점검 (무상)<br>
+                    • <strong>1년 후:</strong> 연간 점검 (무상)<br>
+                    <br>
+                    점검 1주일 전에 연락드립니다.
+                </div>
+                
+                <div class="checklist">
+                    <div class="checklist-title">✅ 일상 관리 체크포인트</div>
+                    <div class="checklist-item">
+                        <input type="checkbox">
+                        <label>월 1회: 배수구 막힘 확인 및 청소</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox">
+                        <label>월 1회: 방수층 표면 육안 점검</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox">
+                        <label>분기 1회: 코너/조인트 상태 확인</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox">
+                        <label>우천 후: 고임 물 여부 확인 및 제거</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox">
+                        <label>연 2회: 방수층 청소 및 이물질 제거</label>
+                    </div>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ 절대 금지 사항</strong><br>
+                    • 방수층 위에 날카로운 물건 방치 금지<br>
+                    • 무거운 물건 끌거나 충격 주는 행위 금지<br>
+                    • 임의로 못 박거나 구멍 뚫는 행위 금지<br>
+                    • 배수구 막힘 방치 금지<br>
+                    • 화기 사용 금지
+                </div>
+                
+                <div class="info-box">
+                    <strong>🆘 이상 징후 발견 시 즉시 연락</strong><br>
+                    • 물이 고이거나 배수가 안 될 때<br>
+                    • 방수층에 균열이나 들뜸이 보일 때<br>
+                    • 표면에 기포나 벗겨짐이 보일 때<br>
+                    • 조인트나 코너에 틈이 보일 때<br>
+                    • 누수 징후가 보일 때<br>
+                    <br>
+                    <strong>긴급 연락처: 010-XXXX-XXXX</strong><br>
+                    <strong>AS 접수: 1234-5678</strong>
+                </div>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th colspan="2" style="text-align: center;">하자보수 보증 내역</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>보증 기간</strong></td>
+                                <td>준공일로부터 OO년</td>
+                            </tr>
+                            <tr>
+                                <td><strong>보증 범위</strong></td>
+                                <td>시공 하자로 인한 누수</td>
+                            </tr>
+                            <tr>
+                                <td><strong>제외 사항</strong></td>
+                                <td>외부 충격, 임의 훼손, 관리 소홀</td>
+                            </tr>
+                            <tr>
+                                <td><strong>보증서 번호</strong></td>
+                                <td>${asData.접수번호}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="downloadReport()" class="submit-btn" style="margin-right: 10px;">📄 완료 보고서 다운로드</button>
+                    <button onclick="location.reload()" class="submit-btn">🔄 새 AS 접수</button>
+                </div>
+            `;
+            addFormMessage(formHtml);
+            
+            // 최종 완료 메시지
+            setTimeout(() => {
+                addBotMessage(`
+                    <div class="success-box">
+                        <strong>🎉 모든 프로세스가 완료되었습니다!</strong><br><br>
+                        안심하고 사용하시고,<br>
+                        문제 발생 시 언제든 연락 주시기 바랍니다.<br><br>
+                        <strong>감사합니다!</strong>
+                    </div>
+                `);
+            }, 1000);
+        }
+
+        function downloadReport() {
+            // 실제로는 서버에서 PDF 생성
+            alert(`AS 완료 보고서 다운로드\n\n접수번호: ${asData.접수번호}\n건물: ${asData.건물유형}\n부위: ${asData.시공부위}\n\n※ 실제 환경에서는 PDF 파일이 다운로드됩니다.`);
+        }
+
+        function sendMessage() {
+            // 일반 채팅 기능 (선택사항)
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                
+                // 간단한 응답 로직
+                setTimeout(() => {
+                    addBotMessage('메시지를 확인했습니다. 추가 문의사항이 있으시면 말씀해주세요.');
+                }, 500);
+            }
+        }
+
+        // Enter 키 입력 처리
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('userInput') === document.activeElement) {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
