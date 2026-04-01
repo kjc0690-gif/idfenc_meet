@@ -8,7 +8,24 @@ Thumbs.db
 # Temp files
 *.tmp
 *.bak
+~$*
 
 # Environment variables (passwords, API keys)
 .env
 *.env
+
+# 큰 파일 제외
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.mov
+*.avi
+*.xlsx
+*.xls
+*.pptx
+
+# Python 캐시
+__pycache__/
+*.pyc
