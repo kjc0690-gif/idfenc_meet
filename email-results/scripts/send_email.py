@@ -5,9 +5,11 @@
 """
 
 import smtplib
+import imaplib
 import argparse
 import sys
 import os
+import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -15,9 +17,11 @@ from email import encoders
 from pathlib import Path
 
 
-# 한메일 SMTP 설정
+# 한메일 SMTP/IMAP 설정
 SMTP_SERVER = "smtp.daum.net"
 SMTP_PORT = 465
+IMAP_SERVER = "imap.daum.net"
+IMAP_PORT = 993
 SMTP_USER = "001kjc"
 SMTP_PASSWORD = os.environ.get("HANMAIL_APP_PASSWORD", "")
 SENDER_EMAIL = "001kjc@hanmail.net"
@@ -77,7 +81,16 @@ def send_email(to, subject, body, attachments, cc=None, html=False):
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SENDER_EMAIL, recipients, msg.as_string())
 
-    print(f"\n[성공] 이메일 발송 완료!")
+    # IMAP으로 보낸편지함에 저장
+    try:
+        imap = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
+        imap.login(SMTP_USER, SMTP_PASSWORD)
+        imap.append('"Sent Messages"', '(\\Seen)', imaplib.Time2Internaldate(time.time()), msg.as_bytes())
+        imap.logout()
+        print(f"\n[성공] 이메일 발송 완료! (보낸편지함 저장됨)")
+    except Exception as e:
+        print(f"\n[성공] 이메일 발송 완료! (보낸편지함 저장 실패: {e})")
+
     print(f"   발신자: {SENDER_EMAIL}")
     print(f"   받는 사람: {to}")
     if cc:
