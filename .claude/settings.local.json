@@ -55,7 +55,10 @@
       "Bash(find '/c/Users/kjc06/클로드 작업기록/idfenc_meet/waterproof-as-sync' -type f -name *.py)",
       "Bash(python as_calendar.py /tmp/test_as.json)",
       "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\")",
-      "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\" --gcal)"
+      "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\" --gcal)",
+      "Bash(powershell -Command \"Copy-Item -Path ''G:\\\\내 드라이브\\\\클로드작업기록\\\\TBM\\\\*'' -Destination ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\TBM\\\\'' -Recurse -Force\")",
+      "Bash(powershell -Command \"Copy-Item -Path ''G:\\\\내 드라이브\\\\클로드작업기록\\\\초평탄바닥\\\\*'' -Destination ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\초평탄바닥\\\\'' -Recurse -Force\")",
+      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force\")"
     ]
   }
 }
