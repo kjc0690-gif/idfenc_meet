@@ -69,7 +69,18 @@
       "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\'' -Filter ''*.lock'' -Recurse | ForEach-Object { Remove-Item $_.FullName -Force; Write-Output \\(''Removed: '' + $_.FullName\\) }\")",
       "Bash(powershell -Command \"Get-Process git* | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; if \\(Test-Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock''\\) { Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force; ''lock removed'' } else { ''no lock found but git reported it'' }\")",
       "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git status 2>&1 }\")",
-      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git add -A; git commit -m ''sync: 동기화 2026-04-05 \\(AS대응 스킬 추가, 토큰 정리\\)'' 2>&1 }\")"
+      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git add -A; git commit -m ''sync: 동기화 2026-04-05 \\(AS대응 스킬 추가, 토큰 정리\\)'' 2>&1 }\")",
+      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git push origin master 2>&1 }\")",
+      "Skill(send-email)",
+      "Skill(send-email:*)",
+      "Bash(powershell -Command \"\\(Get-Item ''G:\\\\내 드라이브\\\\클로드작업기록\\\\자재 및 공법검토\\\\습윤 프라이머\\\\습윤프라이머 제품비교 검토서.zip''\\).Length / 1KB\")",
+      "Read(//c/Users/note/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/601df497-94ae-43d3-aa27-2f75657458ff/11f7f347-9724-4174-8229-2e03c6509b01/skills/xlsx/**)",
+      "Bash(export HANMAIL_APP_PASSWORD=\"vejtvezgqqwkuutr\")",
+      "Bash(export PYTHONIOENCODING=utf-8)",
+      "Bash(python \"C:/Users/note/Desktop/클로드_작업기록/email-results/scripts/send_email.py\" --to \"yijuno.yi@samsung.com\" --subject \"[아이디에프이앤씨] 습윤프라이머 제품비교 검토서 송부 드립니다\" --body \"안녕하세요. 귀 사의 번영을 기원드립니다.:*)",
+      "Bash(cp \"C:/Users/note/.claude/skills/send-email/SKILL.md\" \"C:/Users/note/Desktop/클로드_작업기록/스킬백업/send-email/SKILL.md\")",
+      "Bash(cp \"C:/Users/note/.claude/skills/send-email/SKILL.md\" \"C:/Users/note/Desktop/클로드_작업기록/skills/send-email/SKILL.md\")",
+      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; if \\(Test-Path ''.git\\\\index.lock''\\) { Remove-Item ''.git\\\\index.lock'' -Force; ''removed'' } else { ''not found'' }; git add -f .claude/settings.local.json skills/send-email/SKILL.md ''스킬백업/send-email/SKILL.md''; git commit -m ''[메일] send-email 스킬에 연락처 엑셀 참조 기능 추가:*)"
     ]
   }
 }
