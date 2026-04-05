@@ -58,7 +58,18 @@
       "Bash(python as_calendar.py \"C:\\\\Users\\\\kjc06\\\\AppData\\\\Local\\\\Temp\\\\test_as.json\" --gcal)",
       "Bash(powershell -Command \"Copy-Item -Path ''G:\\\\내 드라이브\\\\클로드작업기록\\\\TBM\\\\*'' -Destination ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\TBM\\\\'' -Recurse -Force\")",
       "Bash(powershell -Command \"Copy-Item -Path ''G:\\\\내 드라이브\\\\클로드작업기록\\\\초평탄바닥\\\\*'' -Destination ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\초평탄바닥\\\\'' -Recurse -Force\")",
-      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force\")"
+      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force\")",
+      "Bash(powershell -Command \"Copy-Item -Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\스킬백업\\\\*'' -Destination ''G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\\\\'' -Recurse -Force\")",
+      "Bash(powershell -Command \"Copy-Item -Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\TBM\\\\*'' -Destination ''G:\\\\내 드라이브\\\\클로드작업기록\\\\TBM\\\\'' -Recurse -Force\")",
+      "Bash(mkdir -p \"C:/Users/note/.claude/skills/as-response\")",
+      "Bash(cp \"C:/Users/note/Desktop/클로드_작업기록/스킬백업/AS대응/SKILL.md\" \"C:/Users/note/.claude/skills/as-response/SKILL.md\")",
+      "Bash(powershell -Command \"Copy-Item -Path ''G:\\\\내 드라이브\\\\클로드작업기록\\\\스킬백업\\\\*'' -Destination ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\스킬백업\\\\'' -Recurse -Force\")",
+      "Bash(powershell -Command \"Copy-Item -Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\TBM\\\\.claude\\\\settings.local.json'' -Destination ''G:\\\\내 드라이브\\\\클로드작업기록\\\\TBM\\\\.claude\\\\settings.local.json'' -Force\")",
+      "Bash(powershell -Command \"if \\(Test-Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock''\\) { Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force; ''deleted'' } else { ''not found'' }\")",
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\'' -Filter ''*.lock'' -Recurse | ForEach-Object { Remove-Item $_.FullName -Force; Write-Output \\(''Removed: '' + $_.FullName\\) }\")",
+      "Bash(powershell -Command \"Get-Process git* | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; if \\(Test-Path ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock''\\) { Remove-Item ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록\\\\.git\\\\index.lock'' -Force; ''lock removed'' } else { ''no lock found but git reported it'' }\")",
+      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git status 2>&1 }\")",
+      "Bash(powershell -Command \"& { Set-Location ''C:\\\\Users\\\\note\\\\Desktop\\\\클로드_작업기록''; git add -A; git commit -m ''sync: 동기화 2026-04-05 \\(AS대응 스킬 추가, 토큰 정리\\)'' 2>&1 }\")"
     ]
   }
 }

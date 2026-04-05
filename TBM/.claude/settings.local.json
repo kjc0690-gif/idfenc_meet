@@ -78,7 +78,24 @@
       "Bash(export PATH=\"/c/Users/CEO/AppData/Local/Programs/Python/Python312:/c/Users/CEO/AppData/Local/Programs/Python/Python312/Scripts:$PATH\" pip install flask flask-cors python-dotenv -q)",
       "Bash(export PATH=\"/c/Users/CEO/AppData/Local/Programs/Python/Python312:/c/Users/CEO/AppData/Local/Programs/Python/Python312/Scripts:$PATH\" pip install google-auth google-auth-oauthlib google-api-python-client -q)",
       "Bash(start \"\" \"G:/내 드라이브/클로드작업기록/이메일발송/waterproof-as-sync/waterproofing_as_v3_optionA.html\")",
-      "Bash(\"G:/내 드라이브/클로드작업기록/영업자료/AS/cases.json\")"
+      "Bash(\"G:/내 드라이브/클로드작업기록/영업자료/AS/cases.json\")",
+      "mcp__207f2fc4-cdd2-4145-8868-0c4f51968bb6__gcal_create_event",
+      "mcp__207f2fc4-cdd2-4145-8868-0c4f51968bb6__gcal_update_event",
+      "Read(//g/내 드라이브/클로드작업기록/TBM/**)",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /tmp/create_as_report_template.py)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /tmp/create_as_report_v2.py)",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /c/Users/CEO/AppData/Local/Temp/create_as_report_v2.py)",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /c/Users/CEO/AppData/Local/Temp/create_as_forms.py)",
+      "Bash(for f:*)",
+      "Bash(do sed:*)",
+      "Bash(echo \"$f 완료\")",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /c/Users/CEO/AppData/Local/Temp/fill_as_forms.py)",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe -m pip install Pillow --quiet)",
+      "Bash(mv \"AS접수대장_온양농협이순신점.xlsx\" \"AS접수대장_온양농협이순신점_20260403.xlsx\")",
+      "Bash(mv \"AS작업일지_온양농협이순신점.xlsx\" \"AS작업일지_온양농협이순신점_20260403.xlsx\")",
+      "Bash(mv \"AS완료보고서_온양농협이순신점.xlsx\" \"AS완료보고서_온양농협이순신점_20260403.xlsx\")",
+      "Bash(/c/Users/CEO/AppData/Local/Programs/Python/Python312/python.exe /c/Users/CEO/AppData/Local/Temp/fix_photo_center.py)"
     ]
   }
 }
